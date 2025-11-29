@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% load nix %}
+{% block title %}My Wishlist - {{ config.site_title }}{% endblock title %}
+
+{% block main_content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">My Wishlist</h1>
+        <p class="text-gray-600">Your saved items</p>
+    </div>
+
+    <!-- Wishlist Items -->
+    {% if wishlist_items %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+        {% for item in wishlist_items %}
+            {% product_card item.product %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">Your wishlist is empty</h3>
+        <p class="text-gray-600 mb-6">Save items you love for later!</p>
+        <a href="{% url "products" %}" class="inline-block bg-black text-white hover:bg-gray-800 py-3 px-6 transition-colors duration-200">
+            Browse Products
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock main_content %}

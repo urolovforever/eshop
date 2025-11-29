@@ -1,16 +1,25 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import IntegrityError
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from apps.product.models import Product
-from .models import Config, User
+from .models import Config, User, Wishlist
 
 
 def index(request):
-    featured_products = Product.objects.filter(is_active=True, is_featured=True)
+    featured_products = Product.objects.filter(is_active=True, is_featured=True)[:6]
+    new_arrivals = Product.objects.filter(is_active=True, is_new_arrival=True).order_by('-created_at')[:4]
+    on_sale_products = Product.objects.filter(is_active=True, on_sale=True)[:4]
+    config = Config.objects.first()
+
     context = {
-        "featured_products": featured_products
+        "featured_products": featured_products,
+        "new_arrivals": new_arrivals,
+        "on_sale_products": on_sale_products,
+        "config": config
     }
     return render(request, 'index.html', context)
 
@@ -116,3 +125,49 @@ def logout_view(request):
     auth_logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
+
+
+@login_required
+@require_POST
+def toggle_wishlist(request):
+    """Toggle product in user's wishlist (add or remove)"""
+    product_id = request.POST.get('product_id')
+
+    if not product_id:
+        return JsonResponse({'success': False, 'error': 'Product ID is required'}, status=400)
+
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+
+    # Check if product is already in wishlist
+    wishlist_item = Wishlist.objects.filter(user=request.user, product=product).first()
+
+    if wishlist_item:
+        # Remove from wishlist
+        wishlist_item.delete()
+        return JsonResponse({
+            'success': True,
+            'action': 'removed',
+            'message': f'{product.name} removed from wishlist'
+        })
+    else:
+        # Add to wishlist
+        Wishlist.objects.create(user=request.user, product=product)
+        return JsonResponse({
+            'success': True,
+            'action': 'added',
+            'message': f'{product.name} added to wishlist'
+        })
+
+
+@login_required
+def wishlist_view(request):
+    """View user's wishlist"""
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('product')
+    return render(request, 'main/wishlist.html', {'wishlist_items': wishlist_items})
+
+
+@login_required
+def get_wishlist_count(request):
+    """Get the count of items in user's wishlist"""
+    count = Wishlist.objects.filter(user=request.user).count()
+    return JsonResponse({'count': count})

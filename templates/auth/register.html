@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% load nix %}
+{% block title %}Register - {{ config.site_title }}{% endblock title %}
+
+{% block main_content %}
+<div class="container mx-auto px-4 py-16">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Create Account</h2>
+
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Choose a username"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Enter your email"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label for="phone" class="block text-gray-700 font-medium mb-2">Phone (optional)</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Enter your phone number"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Choose a password (min 8 characters)"
+                >
+            </div>
+
+            <div class="mb-6">
+                <label for="password_confirm" class="block text-gray-700 font-medium mb-2">Confirm Password</label>
+                <input
+                    type="password"
+                    id="password_confirm"
+                    name="password_confirm"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Confirm your password"
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors duration-200 font-semibold"
+            >
+                Register
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-gray-600">
+                Already have an account?
+                <a href="{% url 'login' %}" class="text-black font-semibold hover:underline">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}
