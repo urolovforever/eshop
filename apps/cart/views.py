@@ -26,12 +26,14 @@ def cart_view(request):
     """Display cart contents"""
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('product', 'size', 'color').all()
-    
+
     context = {
         'cart': cart,
         'cart_items': cart_items,
         'total_items': cart.get_total_items(),
+        'subtotal': cart.get_subtotal(),
         'total_price': cart.get_total_price(),
+        'discount': cart.applied_discount,
     }
     return render(request, 'cart/cart.html', context)
 
@@ -139,7 +141,7 @@ def remove_from_cart(request):
         item_id = request.POST.get('item_id')
         cart = get_or_create_cart(request)
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
-        
+
         product_name = cart_item.product.name
         cart_item.delete()
         messages.success(request, f'{product_name} removed from cart.')
@@ -148,3 +150,68 @@ def remove_from_cart(request):
     except Exception as e:
         messages.error(request, f'Error removing item from cart: {e}')
         return redirect('cart')
+
+
+@require_POST
+def apply_promo_code(request):
+    """Apply promo code to cart via AJAX"""
+    try:
+        cart = get_or_create_cart(request)
+        promo_code = request.POST.get('promo_code', '').strip()
+
+        if not promo_code:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please enter a promo code'
+            }, status=400)
+
+        # Apply promo code
+        success, message = cart.apply_promo_code(promo_code)
+
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'data': {
+                    'subtotal': float(cart.get_subtotal()),
+                    'discount': float(cart.applied_discount),
+                    'total': float(cart.get_total_price()),
+                    'promo_code': cart.promo_code.code if cart.promo_code else None
+                }
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': message
+            }, status=400)
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        }, status=500)
+
+
+@require_POST
+def remove_promo_code(request):
+    """Remove promo code from cart via AJAX"""
+    try:
+        cart = get_or_create_cart(request)
+        cart.remove_promo_code()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Promo code removed',
+            'data': {
+                'subtotal': float(cart.get_subtotal()),
+                'discount': 0,
+                'total': float(cart.get_subtotal()),
+                'promo_code': None
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        }, status=500)
