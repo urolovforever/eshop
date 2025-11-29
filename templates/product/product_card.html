@@ -59,7 +59,8 @@
         {% if user.is_authenticated %}
         <button
             @click.prevent="toggleWishlist()"
-            class="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100"
+            class="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
+            :class="inWishlist ? 'opacity-100' : 'opacity-70 hover:opacity-100'"
         >
             <svg
                 class="w-5 h-5 transition-colors duration-200"
