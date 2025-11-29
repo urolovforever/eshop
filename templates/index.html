@@ -1,101 +1,253 @@
-{% extends "layout.html" %} {% block title %}Nixagone{% endblock title %} 
+{% extends "layout.html" %}
+{% block title %}{{ config.site_title }} - Home{% endblock title %}
 {% block main_content %}
 {% load nix %}
 
-<section class="relative">
-  <div class="container mx-auto px-4 py-28 flex flex-col items-center justify-center">
-    <h1 class="text-4xl text-black font-bold text-center mb-5">Wear your profession</h1>
-    <p class="text-gray-700 text-center text-lg mb-8">Show your profession with our premium quality T-Shirts.</p>
-    <a href="{% url "products" %}" class="bg-black text-white hover:bg-white hover:text-black active:border-transparent active:bg-black active:text-white py-3 px-5 border-2 border-black transition">Shop Now</a>
-  </div>
-  <div class="bg relative text-gray-100 max-w-[1200px] -mt-20 mx-auto">
-    {% include "partials/hero_bg.html" %}
-  </div>
+<!-- Hero Carousel Section -->
+<section class="relative mb-12" x-data="{
+    currentSlide: 0,
+    slides: [
+        {
+            image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&h=500&fit=crop',
+            title: 'New Collection 2025',
+            description: 'Discover our latest arrivals and trending styles',
+            buttonText: 'Shop Now',
+            buttonLink: '{% url "new_arrivals" %}'
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=500&fit=crop',
+            title: 'Special Sale',
+            description: 'Up to 50% off on selected items',
+            buttonText: 'View Sale',
+            buttonLink: '{% url "on_sale" %}'
+        },
+        {
+            image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=500&fit=crop',
+            title: 'Premium Quality',
+            description: 'Shop our curated collection of premium products',
+            buttonText: 'Explore',
+            buttonLink: '{% url "products" %}'
+        }
+    ],
+    autoplay: null,
+    init() {
+        this.startAutoplay();
+    },
+    nextSlide() {
+        this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+        this.resetAutoplay();
+    },
+    prevSlide() {
+        this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+        this.resetAutoplay();
+    },
+    goToSlide(index) {
+        this.currentSlide = index;
+        this.resetAutoplay();
+    },
+    startAutoplay() {
+        this.autoplay = setInterval(() => {
+            this.nextSlide();
+        }, 5000);
+    },
+    resetAutoplay() {
+        clearInterval(this.autoplay);
+        this.startAutoplay();
+    }
+}">
+    <div class="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-gray-200 rounded-lg">
+        <!-- Slides -->
+        <template x-for="(slide, index) in slides" :key="index">
+            <div
+                x-show="currentSlide === index"
+                x-transition:enter="transition ease-out duration-700"
+                x-transition:enter-start="opacity-0 transform translate-x-full"
+                x-transition:enter-end="opacity-100 transform translate-x-0"
+                x-transition:leave="transition ease-in duration-700"
+                x-transition:leave-start="opacity-100 transform translate-x-0"
+                x-transition:leave-end="opacity-0 transform -translate-x-full"
+                class="absolute inset-0 w-full h-full"
+                style="display: none;"
+            >
+                <!-- Background Image -->
+                <div class="absolute inset-0 bg-cover bg-center" :style="'background-image: url(' + slide.image + ')'">
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+                </div>
+
+                <!-- Content -->
+                <div class="relative h-full flex items-center justify-center text-center px-4">
+                    <div class="max-w-3xl">
+                        <h2
+                            class="text-4xl md:text-6xl font-bold text-white mb-4"
+                            x-text="slide.title"
+                        ></h2>
+                        <p
+                            class="text-lg md:text-xl text-gray-100 mb-8"
+                            x-text="slide.description"
+                        ></p>
+                        <a
+                            :href="slide.buttonLink"
+                            class="inline-block bg-white text-black hover:bg-black hover:text-white py-3 px-8 border-2 border-white transition-colors duration-300 font-semibold"
+                            x-text="slide.buttonText"
+                        ></a>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Navigation Arrows -->
+        <button
+            @click="prevSlide()"
+            class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-black p-3 rounded-full transition-all duration-200 z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button
+            @click="nextSlide()"
+            class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-black p-3 rounded-full transition-all duration-200 z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+
+        <!-- Dots Indicator -->
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+            <template x-for="(slide, index) in slides" :key="index">
+                <button
+                    @click="goToSlide(index)"
+                    class="w-3 h-3 rounded-full transition-all duration-300"
+                    :class="currentSlide === index ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/75'"
+                ></button>
+            </template>
+        </div>
+    </div>
 </section>
 
+<!-- Featured Products Section -->
 <section class="container mb-16">
-  {% include "partials/heading.html" with title='Featured Products' %}
-  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
-    {% for product in featured_products %}
-      {% product_card product %}
-    {% endfor %}
-  </div>
+    {% include "partials/heading.html" with title='Featured Products' %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in featured_products %}
+            {% product_card product %}
+        {% empty %}
+            <div class="col-span-full text-center py-12">
+                <p class="text-gray-500 text-lg">No featured products available at the moment.</p>
+            </div>
+        {% endfor %}
+    </div>
 </section>
 
-<section
-  class="container flex flex-col gap-3 justify-center lg:flex-row mx-auto my-8"
->
-  <div
-    class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4"
-  >
-    <div>
-      <svg
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        class="h-6 lg:mr-2 text-black w-6"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
-        ></path>
-      </svg>
+<!-- New Arrivals Section -->
+{% if new_arrivals %}
+<section class="container mb-16">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold text-gray-900">New Arrivals</h2>
+        <a href="{% url "new_arrivals" %}" class="text-black hover:underline font-medium flex items-center gap-2">
+            See All
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
     </div>
-    <div class="flex flex-col justify-center ml-6">
-      <h3 class="font-bold lg:text-sm text-left text-xs">Free Delivery</h3>
-      <p class="lg:text-left lg:text-sm text-center text-light text-xs">
-        Orders from {{1250|taka}}
-      </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in new_arrivals %}
+            {% product_card product %}
+        {% endfor %}
     </div>
-  </div>
-  <div
-    class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4"
-  >
-    <div>
-      <svg
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        class="h-6 lg:mr-2 text-black w-6"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-        ></path>
-      </svg>
+</section>
+{% endif %}
+
+<!-- On Sale Section -->
+{% if on_sale_products %}
+<section class="container mb-16">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold text-gray-900">On Sale</h2>
+        <a href="{% url "on_sale" %}" class="text-black hover:underline font-medium flex items-center gap-2">
+            See All
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
     </div>
-    <div class="flex flex-col justify-center ml-6">
-      <h3 class="font-bold lg:text-sm text-left text-xs">Money returns</h3>
-      <p class="lg:text-sm text-left text-light text-xs">30 Days guarantee</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in on_sale_products %}
+            {% product_card product %}
+        {% endfor %}
     </div>
-  </div>
-  <div
-    class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4"
-  >
-    <div>
-      <svg
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        class="h-6 lg:mr-2 text-black w-6"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z"
-        ></path>
-      </svg>
+</section>
+{% endif %}
+
+<!-- Features Section -->
+<section class="container flex flex-col gap-3 justify-center lg:flex-row mx-auto my-8">
+    <div class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4">
+        <div>
+            <svg
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                class="h-6 lg:mr-2 text-black w-6"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+                ></path>
+            </svg>
+        </div>
+        <div class="flex flex-col justify-center ml-6">
+            <h3 class="font-bold lg:text-sm text-left text-xs">Free Delivery</h3>
+            <p class="lg:text-left lg:text-sm text-center text-light text-xs">
+                Orders from {{1250|taka}}
+            </p>
+        </div>
     </div>
-    <div class="flex flex-col justify-center ml-6">
-      <h3 class="font-bold lg:text-sm text-left text-xs">24/7 Supports</h3>
-      <p class="lg:text-sm text-left text-light text-xs">Consumer support</p>
+    <div class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4">
+        <div>
+            <svg
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                class="h-6 lg:mr-2 text-black w-6"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+                ></path>
+            </svg>
+        </div>
+        <div class="flex flex-col justify-center ml-6">
+            <h3 class="font-bold lg:text-sm text-left text-xs">Money returns</h3>
+            <p class="lg:text-sm text-left text-light text-xs">30 Days guarantee</p>
+        </div>
     </div>
-  </div>
+    <div class="border border-black flex flex-row items-center justify-center mx-5 px-5 py-4">
+        <div>
+            <svg
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                class="h-6 lg:mr-2 text-black w-6"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z"
+                ></path>
+            </svg>
+        </div>
+        <div class="flex flex-col justify-center ml-6">
+            <h3 class="font-bold lg:text-sm text-left text-xs">24/7 Supports</h3>
+            <p class="lg:text-sm text-left text-light text-xs">Consumer support</p>
+        </div>
+    </div>
 </section>
 
 {% endblock main_content %}

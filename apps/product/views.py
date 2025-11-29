@@ -93,17 +93,55 @@ class CategoryDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         category = self.get_object()
-        
+
         # Get products in this category with pagination
         products = Product.objects.filter(
             category=category,
             is_active=True
         ).order_by('name')
-        
+
         paginator = Paginator(products, 12)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        
+
         context['products'] = page_obj
         context['product_count'] = products.count()
+        return context
+
+
+class NewArrivalsView(ListView):
+    """View for new arrival products"""
+    model = Product
+    template_name = 'product/new_arrivals.html'
+    context_object_name = 'products'
+    paginate_by = 12
+
+    def get_queryset(self):
+        return Product.objects.filter(
+            is_active=True,
+            is_new_arrival=True
+        ).select_related('category').order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'New Arrivals'
+        return context
+
+
+class OnSaleView(ListView):
+    """View for products on sale"""
+    model = Product
+    template_name = 'product/on_sale.html'
+    context_object_name = 'products'
+    paginate_by = 12
+
+    def get_queryset(self):
+        return Product.objects.filter(
+            is_active=True,
+            on_sale=True
+        ).select_related('category').order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'On Sale'
         return context
