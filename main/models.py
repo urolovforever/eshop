@@ -61,7 +61,7 @@ class Config(models.Model):
         return f'{self.site_title} - Config'
 
     email = models.EmailField(null=True, blank=True)
-    phone = models.CharField(null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
 
     whatsapp_number = models.CharField(max_length=20, null=True, blank=True)

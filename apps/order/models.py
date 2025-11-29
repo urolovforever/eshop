@@ -11,7 +11,7 @@ class Address(models.Model):
     address = models.TextField()
 
     def __str__(self):
-        return f'Name: {self.name}\n\n Phone:{self.phone}\n\n Email:{self.email if self.email else 'No Email'}\n\n Address: {self.district}, {self.address}'
+        return f'Name: {self.name}\n\n Phone:{self.phone}\n\n Email:{self.email if self.email else "No Email"}\n\n Address: {self.district}, {self.address}'
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
