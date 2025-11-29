@@ -141,21 +141,83 @@
     </section>
 
 
-    <section class="md:max-w-[400px] mx-auto md:px-4 w-full">
+    <section class="md:max-w-[400px] mx-auto md:px-4 w-full" x-data="promoCode()">
       <div>
         <div class="border px-4 py-5 shadow-md">
-          <p class="font-bold">ORDER SUMMARY</p>
-          <div class="border-b flex justify-between py-5">
+          <p class="font-bold mb-4">ORDER SUMMARY</p>
+
+          <!-- Promo Code Section -->
+          <div class="border-b pb-5 mb-5">
+            <div x-show="!appliedPromo">
+              <label for="promo-code" class="text-sm font-medium text-gray-700 block mb-2">Have a promo code?</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="promo-code"
+                  x-model="promoCodeInput"
+                  :disabled="loading"
+                  @keyup.enter="applyPromo()"
+                  placeholder="Enter code"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                >
+                <button
+                  @click="applyPromo()"
+                  :disabled="loading || !promoCodeInput"
+                  class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  x-text="loading ? 'Applying...' : 'Apply'"
+                ></button>
+              </div>
+              <!-- Error Message -->
+              <p x-show="errorMessage" x-text="errorMessage" class="text-red-600 text-sm mt-2"></p>
+            </div>
+
+            <!-- Applied Promo Code Display -->
+            <div x-show="appliedPromo" class="bg-green-50 border border-green-200 rounded p-3" style="display: none;">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-green-800">Promo Code Applied</p>
+                  <p class="text-xs text-green-600" x-text="appliedPromo"></p>
+                </div>
+                <button
+                  @click="removePromo()"
+                  :disabled="loading"
+                  class="text-red-600 hover:text-red-800 transition-colors"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Success Message -->
+            <p x-show="successMessage" x-text="successMessage" class="text-green-600 text-sm mt-2"></p>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="border-b flex justify-between py-3">
             <p>Subtotal</p>
-            <p class="font-semibold text-green-600">{{cart.get_total_price|taka}}</p>
+            <p class="font-semibold" x-text="formatPrice(subtotal)">{{subtotal|taka}}</p>
           </div>
-          <div class="border-b py-5">
-            <p>Delivery Charges</p>
-            <p class="text-sm mt-2">{% config "delivery_cost_dhaka" %} ৳ inside Dhaka, {% config "delivery_cost" %} ৳ outside Dhaka</p>
+
+          <div x-show="discount > 0" class="border-b flex justify-between py-3 text-green-600" style="display: none;">
+            <p>Discount</p>
+            <p class="font-semibold" x-text="'-' + formatPrice(discount)">-{{discount|taka}}</p>
           </div>
+
+          <div class="border-b flex justify-between py-3">
+            <p class="font-bold">Total</p>
+            <p class="font-bold text-green-600 text-lg" x-text="formatPrice(total)">{{total_price|taka}}</p>
+          </div>
+
+          <div class="py-5">
+            <p class="font-medium mb-2">Delivery Charges</p>
+            <p class="text-sm text-gray-600">{% config "delivery_cost_dhaka" %} ৳ inside Dhaka, {% config "delivery_cost" %} ৳ outside Dhaka</p>
+          </div>
+
           <a href="{% url "checkout" %}">
-            <button class="bg-black px-5 py-2 text-white w-full">
-              Proceed to checkout
+            <button class="bg-black px-5 py-3 text-white w-full rounded hover:bg-gray-800 transition-colors font-medium">
+              Proceed to Checkout
             </button>
           </a>
         </div>
@@ -172,4 +234,106 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+function promoCode() {
+    return {
+        promoCodeInput: '',
+        appliedPromo: '{{ cart.promo_code.code|default:"" }}',
+        subtotal: {{ subtotal|default:0 }},
+        discount: {{ discount|default:0 }},
+        total: {{ total_price|default:0 }},
+        loading: false,
+        errorMessage: '',
+        successMessage: '',
+
+        formatPrice(amount) {
+            return '৳' + amount.toFixed(2);
+        },
+
+        async applyPromo() {
+            if (!this.promoCodeInput.trim()) {
+                this.errorMessage = 'Please enter a promo code';
+                return;
+            }
+
+            this.loading = true;
+            this.errorMessage = '';
+            this.successMessage = '';
+
+            try {
+                const formData = new FormData();
+                formData.append('promo_code', this.promoCodeInput.trim());
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                const response = await fetch('{% url "apply_promo_code" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.appliedPromo = data.data.promo_code;
+                    this.subtotal = data.data.subtotal;
+                    this.discount = data.data.discount;
+                    this.total = data.data.total;
+                    this.promoCodeInput = '';
+                    this.successMessage = data.message;
+
+                    // Clear success message after 5 seconds
+                    setTimeout(() => {
+                        this.successMessage = '';
+                    }, 5000);
+                } else {
+                    this.errorMessage = data.error;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.errorMessage = 'An error occurred. Please try again.';
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async removePromo() {
+            this.loading = true;
+            this.errorMessage = '';
+            this.successMessage = '';
+
+            try {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                const response = await fetch('{% url "remove_promo_code" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.appliedPromo = null;
+                    this.subtotal = data.data.subtotal;
+                    this.discount = data.data.discount;
+                    this.total = data.data.total;
+                    this.successMessage = data.message;
+
+                    // Clear success message after 3 seconds
+                    setTimeout(() => {
+                        this.successMessage = '';
+                    }, 3000);
+                } else {
+                    this.errorMessage = data.error;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.errorMessage = 'An error occurred. Please try again.';
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>
 {% endblock main_content %}
