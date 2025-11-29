@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.urls import reverse
 
@@ -35,6 +35,13 @@ class Product(models.Model):
     stock_quantity = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    is_new_arrival = models.BooleanField(default=False)
+    on_sale = models.BooleanField(default=False)
+    discount_percentage = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Discount percentage (0-100). Only applicable when on_sale is True."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,6 +55,19 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse('product_detail', kwargs={'slug': self.slug})
+
+    def get_sale_price(self):
+        """Calculate and return the sale price if product is on sale"""
+        if self.on_sale and self.discount_percentage > 0:
+            discount_amount = (self.price * self.discount_percentage) / 100
+            return int(self.price - discount_amount)
+        return self.price
+
+    def get_savings_amount(self):
+        """Calculate the amount saved if product is on sale"""
+        if self.on_sale and self.discount_percentage > 0:
+            return int((self.price * self.discount_percentage) / 100)
+        return 0
 
     def is_in_stock(self):
         """Check if product is in stock"""

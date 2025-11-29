@@ -24,7 +24,22 @@ class User(AbstractUser):
     def get_orders(self):
         """Get user's orders ordered by creation date"""
         return self.orders.all().order_by('-created_at')
-    
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist_items')
+    product = models.ForeignKey('product.Product', on_delete=models.CASCADE, related_name='wishlisted_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+        ordering = ['-created_at']
+        verbose_name_plural = "Wishlist Items"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name}"
+
+
 about = """
 <h2 class="font-bold text-left text-xl w-full">Our Mission:</h2>
         <p class="py-3"> Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum placeat odit, est eum dolorem

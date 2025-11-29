@@ -4,9 +4,9 @@ from django.utils.html import format_html
 from django.db.models import Count
 from django.contrib.admin import SimpleListFilter
 from apps.product.models import Product, Category, Size, Color, Image
-from apps.order.models import Order, OrderItem, Address
+from apps.order.models import Order, OrderItem, Address, PromoCode
 from apps.cart.models import Cart, CartItem
-from .models import User, Config
+from .models import User, Config, Wishlist
 
 
 # Custom Admin Site Configuration
@@ -145,16 +145,16 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'primary_image_preview', 'name', 'category', 'price', 'stock_status', 'stock_quantity', 
-        'is_active', 'is_featured'
+        'primary_image_preview', 'name', 'category', 'price', 'stock_status', 'stock_quantity',
+        'is_active', 'is_featured', 'is_new_arrival', 'on_sale'
     )
-    list_filter = ('is_active', 'category', StockLevelFilter, 'created_at')
+    list_filter = ('is_active', 'is_featured', 'is_new_arrival', 'on_sale', 'category', StockLevelFilter, 'created_at')
     search_fields = ('name', 'sku', 'description')
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('created_at', 'updated_at', 'primary_image_preview')
-    list_editable = ('price', 'stock_quantity', 'is_active', 'is_featured')
+    list_editable = ('price', 'stock_quantity', 'is_active', 'is_featured', 'is_new_arrival', 'on_sale')
     list_per_page = 10
-    
+
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'slug', 'category', 'sku', 'is_active', 'is_featured')
@@ -164,6 +164,10 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('Pricing & Inventory', {
             'fields': ('price', 'stock_quantity')
+        }),
+        ('Sales & Promotions', {
+            'fields': ('is_new_arrival', 'on_sale', 'discount_percentage'),
+            'description': 'Set product as new arrival or on sale. Discount percentage only applies when on_sale is checked.'
         }),
         ('Media', {
             'fields': ('primary_image_preview',)
@@ -413,7 +417,87 @@ class EcommerceAdminSite(admin.AdminSite):
         }
         
         extra_context['dashboard_stats'] = stats
-        
+
         return super().index(request, extra_context)
-    
+
+
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = (
+        'code', 'discount_type', 'discount_value', 'min_order_amount',
+        'current_usage', 'max_usage', 'expiry_date', 'is_active', 'status_badge'
+    )
+    list_filter = ('discount_type', 'is_active', 'created_at')
+    search_fields = ('code',)
+    readonly_fields = ('current_usage', 'created_at', 'updated_at')
+    list_editable = ('is_active',)
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Promo Code Information', {
+            'fields': ('code', 'is_active')
+        }),
+        ('Discount Details', {
+            'fields': ('discount_type', 'discount_value', 'min_order_amount')
+        }),
+        ('Usage Limits', {
+            'fields': ('max_usage', 'current_usage', 'expiry_date'),
+            'description': 'Set maximum usage limit and expiry date. Leave max_usage empty for unlimited usage.'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def status_badge(self, obj):
+        is_valid, message = obj.is_valid()
+        if is_valid:
+            return format_html(
+                '<span style="color: green; font-weight: bold;">✓ Active</span>'
+            )
+        else:
+            return format_html(
+                '<span style="color: red; font-weight: bold;">✗ {}</span>',
+                message
+            )
+    status_badge.short_description = "Status"
+
+    actions = ['mark_as_active', 'mark_as_inactive']
+
+    def mark_as_active(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} promo codes marked as active.')
+    mark_as_active.short_description = "Mark selected promo codes as active"
+
+    def mark_as_inactive(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} promo codes marked as inactive.')
+    mark_as_inactive.short_description = "Mark selected promo codes as inactive"
+
+
+@admin.register(Wishlist)
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'product_category', 'product_price', 'created_at')
+    list_filter = ('created_at', 'product__category')
+    search_fields = ('user__username', 'user__email', 'product__name')
+    readonly_fields = ('user', 'product', 'created_at')
+    date_hierarchy = 'created_at'
+
+    def product_category(self, obj):
+        return obj.product.category.name if obj.product.category else "No Category"
+    product_category.short_description = "Category"
+
+    def product_price(self, obj):
+        if obj.product.on_sale and obj.product.discount_percentage > 0:
+            return format_html(
+                '<span style="text-decoration: line-through; color: gray;">৳{}</span> '
+                '<span style="color: red; font-weight: bold;">৳{}</span>',
+                obj.product.price,
+                obj.product.get_sale_price()
+            )
+        return f"৳{obj.product.price}"
+    product_price.short_description = "Price"
+
+
 admin.site.register(Config)
