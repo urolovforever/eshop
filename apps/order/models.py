@@ -1,7 +1,97 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from main.models import User
 from apps.product.models import Product, Size, Color
+
+
+class PromoCode(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ('fixed', 'Fixed Amount'),
+        ('percentage', 'Percentage'),
+    ]
+
+    code = models.CharField(max_length=50, unique=True, db_index=True)
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, default='percentage')
+    discount_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        help_text="Fixed amount or percentage value"
+    )
+    min_order_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Minimum order amount to apply this promo code"
+    )
+    max_usage = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum number of times this code can be used. Leave empty for unlimited."
+    )
+    current_usage = models.PositiveIntegerField(default=0)
+    expiry_date = models.DateTimeField(null=True, blank=True, help_text="Leave empty for no expiration")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.code} - {self.get_discount_display()}"
+
+    def get_discount_display(self):
+        """Return formatted discount display"""
+        if self.discount_type == 'percentage':
+            return f"{self.discount_value}% off"
+        return f"৳{self.discount_value} off"
+
+    def is_valid(self):
+        """Check if promo code is valid"""
+        if not self.is_active:
+            return False, "Promo code is not active"
+
+        if self.expiry_date and self.expiry_date < timezone.now():
+            return False, "Promo code has expired"
+
+        if self.max_usage and self.current_usage >= self.max_usage:
+            return False, "Promo code usage limit reached"
+
+        return True, "Valid"
+
+    def can_apply(self, order_amount):
+        """Check if promo code can be applied to the given order amount"""
+        is_valid, message = self.is_valid()
+        if not is_valid:
+            return False, message
+
+        if order_amount < self.min_order_amount:
+            return False, f"Minimum order amount is ৳{self.min_order_amount}"
+
+        return True, "Can apply"
+
+    def calculate_discount(self, order_amount):
+        """Calculate discount amount for the given order amount"""
+        can_apply, message = self.can_apply(order_amount)
+        if not can_apply:
+            return 0
+
+        if self.discount_type == 'percentage':
+            discount = (order_amount * self.discount_value) / 100
+        else:
+            discount = self.discount_value
+
+        # Ensure discount doesn't exceed order amount
+        return min(discount, order_amount)
+
+    def use_code(self):
+        """Increment usage counter"""
+        self.current_usage += 1
+        self.save()
+
 
 class Address(models.Model):
     name = models.CharField(max_length=100)
