@@ -1,0 +1,79 @@
+{% load static %}
+{% load nix %}
+<div class="cart-dropdown dropdown-menu">
+
+    <!-- Cart Header-->
+    <div class="d-flex justify-content-between align-items-center border-bottom pt-3 pb-4">
+        <h6 class="fw-bolder m-0">Cart Summary ({{ total_items }} item{{ total_items|pluralize }})</h6>
+        <i class="ri-close-circle-line text-muted ri-lg cursor-pointer btn-close-cart"></i>
+    </div>
+    <!-- / Cart Header-->
+
+    <!-- Cart Items-->
+    <div>
+        {% if cart and cart.items.all %}
+            {% for item in cart.items.all %}
+            <!-- Cart Product-->
+            <div class="row mx-0 py-4 g-0 border-bottom">
+                <div class="col-2 position-relative">
+                    <picture class="d-block">
+                        {% if item.product.get_primary_image %}
+                            <img class="img-fluid" src="{{ item.product.get_primary_image.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <img class="img-fluid" src="{% static 'images/products/placeholder.jpg' %}" alt="{{ item.product.name }}">
+                        {% endif %}
+                    </picture>
+                </div>
+                <div class="col-9 offset-1">
+                    <div>
+                        <h6 class="justify-content-between d-flex align-items-start mb-2">
+                            {{ item.product.name }}
+                            <form method="post" action="{% url 'cart:remove_from_cart' %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <button type="submit" class="btn btn-link p-0 text-muted border-0">
+                                    <i class="ri-close-line ms-3"></i>
+                                </button>
+                            </form>
+                        </h6>
+                        <span class="d-block text-muted fw-bolder text-uppercase fs-9">
+                            {% if item.size %}Size: {{ item.size.name }}{% endif %}
+                            {% if item.size and item.color %} / {% endif %}
+                            {% if item.color %}Color: {{ item.color.name }}{% endif %}
+                            / Qty: {{ item.quantity }}
+                        </span>
+                    </div>
+                    <p class="fw-bolder text-end text-muted m-0">{{ item.get_total_price|taka }}</p>
+                </div>
+            </div>
+            <!-- / Cart Product-->
+            {% endfor %}
+        {% else %}
+            <div class="py-5 text-center text-muted">
+                <i class="ri-shopping-cart-line ri-3x mb-3 d-block"></i>
+                <p>Your cart is empty</p>
+            </div>
+        {% endif %}
+    </div>
+    <!-- /Cart Items-->
+
+    {% if cart and cart.items.all %}
+    <!-- Cart Summary-->
+    <div>
+        <div class="pt-3">
+            <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-start mb-4 mb-md-2">
+                <div>
+                    <p class="m-0 fw-bold fs-5">Grand Total</p>
+                    {% if cart.promo_code %}
+                        <small class="text-success">Promo code "{{ cart.promo_code.code }}" applied!</small>
+                    {% endif %}
+                </div>
+                <p class="m-0 fs-5 fw-bold">{{ total_price|taka }}</p>
+            </div>
+        </div>
+        <a href="{% url 'cart:cart_view' %}" class="btn btn-outline-dark w-100 text-center mt-4" role="button">View Cart</a>
+        <a href="{% url 'checkout:checkout' %}" class="btn btn-dark w-100 text-center mt-2" role="button">Proceed To Checkout</a>
+    </div>
+    <!-- / Cart Summary-->
+    {% endif %}
+</div>

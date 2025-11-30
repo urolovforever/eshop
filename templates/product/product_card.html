@@ -1,0 +1,74 @@
+{% load static %}
+{% load nix %}
+<!-- Card Product-->
+<div class="card border border-transparent position-relative overflow-hidden h-100 transparent">
+    <div class="card-img position-relative">
+        <div class="card-badges">
+            {% if product.on_sale %}
+                <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-danger rounded-circle d-block me-1"></span> Sale</span>
+            {% endif %}
+            {% if product.is_new_arrival %}
+                <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-success rounded-circle d-block me-1"></span> New In</span>
+            {% endif %}
+            {% if product.stock_quantity == 0 %}
+                <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-secondary rounded-circle d-block me-1"></span> Sold Out</span>
+            {% endif %}
+        </div>
+
+        <!-- Wishlist Icon -->
+        {% if request.user.is_authenticated %}
+        <span class="position-absolute top-0 end-0 p-2 z-index-20 text-muted cursor-pointer wishlist-toggle"
+              data-product-id="{{ product.id }}">
+            <i class="ri-heart-{% if product in request.user.wishlist_items.all %}fill text-danger{% else %}line{% endif %}"></i>
+        </span>
+        {% else %}
+        <a href="{% url 'login' %}" class="position-absolute top-0 end-0 p-2 z-index-20 text-muted">
+            <i class="ri-heart-line"></i>
+        </a>
+        {% endif %}
+
+        <picture class="position-relative overflow-hidden d-block bg-light">
+            {% if product.get_primary_image %}
+                <img class="w-100 img-fluid position-relative z-index-10"
+                     title="{{ product.name }}"
+                     src="{{ product.get_primary_image.image.url }}"
+                     alt="{{ product.name }}">
+            {% else %}
+                <img class="w-100 img-fluid position-relative z-index-10"
+                     title="{{ product.name }}"
+                     src="{% static 'images/products/placeholder.jpg' %}"
+                     alt="{{ product.name }}">
+            {% endif %}
+        </picture>
+
+        {% if product.can_order %}
+        <div class="position-absolute start-0 bottom-0 end-0 z-index-20 p-2">
+            <button class="btn btn-quick-add"
+                    data-product-id="{{ product.id }}"
+                    data-product-slug="{{ product.slug }}">
+                <i class="ri-add-line me-2"></i> Quick Add
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-body px-0">
+        <a class="text-decoration-none link-cover" href="{% url 'product:product_detail' product.slug %}">
+            {{ product.name }}
+        </a>
+
+        <small class="text-muted d-block">
+            {% if product|has_color_variants %}{{ product.colors.count }} colour{{ product.colors.count|pluralize }}{% endif %}{% if product|has_color_variants and product|has_size_variants %}, {% endif %}{% if product|has_size_variants %}{{ product.sizes.count }} size{{ product.sizes.count|pluralize }}{% endif %}
+        </small>
+
+        {% if product.on_sale and product.get_sale_price %}
+            <p class="mt-2 mb-0 small">
+                <s class="text-muted">{{ product.price|taka }}</s>
+                <span class="text-danger">{{ product.get_sale_price|taka }}</span>
+            </p>
+        {% else %}
+            <p class="mt-2 mb-0 small">{{ product.price|taka }}</p>
+        {% endif %}
+    </div>
+</div>
+<!--/ Card Product-->

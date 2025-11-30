@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load nix %}
+
+{% block title %}{{ product.name }} - {{ config.site_name|default:'OldSkool' }}{% endblock %}
+
+{% block content %}
+<!-- Main Section-->
+<section class="mt-0">
+    <!-- Page Content Goes Here -->
+
+    <!-- Breadcrumbs-->
+    <div class="bg-dark py-6">
+        <div class="container-fluid">
+            <nav class="m-0" aria-label="breadcrumb">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item breadcrumb-light"><a href="{% url 'index' %}">Home</a></li>
+                    <li class="breadcrumb-item breadcrumb-light"><a href="{% url 'product:product_list' %}">Products</a></li>
+                    {% if product.category %}
+                    <li class="breadcrumb-item breadcrumb-light"><a href="{% url 'product:product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item breadcrumb-light active" aria-current="page">{{ product.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <!-- / Breadcrumbs-->
+
+    <div class="container-fluid mt-5">
+
+        <!-- Product Top Section-->
+        <div class="row g-9" data-sticky-container>
+
+            <!-- Product Images-->
+            <div class="col-12 col-md-6 col-xl-7">
+                <div class="row g-3" data-aos="fade-right">
+                    {% if images %}
+                        {% for image in images %}
+                        <div class="col-12">
+                            <picture>
+                                <img class="img-fluid" data-zoomable src="{{ image.image.url }}" alt="{{ product.name }}">
+                            </picture>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <picture>
+                                <img class="img-fluid" data-zoomable src="{% static 'images/products/placeholder.jpg' %}" alt="{{ product.name }}">
+                            </picture>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- /Product Images-->
+
+            <!-- Product Information-->
+            <div class="col-12 col-md-6 col-lg-5">
+                <div class="sticky-top top-5">
+                    <div class="pb-3" data-aos="fade-in">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if product.category %}
+                            <p class="small fw-bolder text-uppercase tracking-wider text-muted m-0 me-4">{{ product.category.name }}</p>
+                            {% endif %}
+                        </div>
+
+                        <h1 class="mb-1 fs-2 fw-bold">{{ product.name }}</h1>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if product.on_sale and product.get_sale_price %}
+                            <p class="fs-4 m-0">
+                                <s class="text-muted me-2">{{ product.price|taka }}</s>
+                                <span class="text-danger">{{ product.get_sale_price|taka }}</span>
+                                <span class="badge bg-danger ms-2">{{ product.discount_percentage }}% OFF</span>
+                            </p>
+                            {% else %}
+                            <p class="fs-4 m-0">{{ product.price|taka }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Stock Status -->
+                        <div class="mt-3">
+                            {% if product.stock_quantity > 0 %}
+                                {% if product.stock_quantity < 10 %}
+                                <p class="text-warning mb-0"><i class="ri-alert-line"></i> Only {{ product.stock_quantity }} left in stock</p>
+                                {% else %}
+                                <p class="text-success mb-0"><i class="ri-checkbox-circle-line"></i> In Stock</p>
+                                {% endif %}
+                            {% else %}
+                            <p class="text-danger mb-0"><i class="ri-close-circle-line"></i> Out of Stock</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Product Description -->
+                        {% if product.short_description %}
+                        <div class="mt-4">
+                            <p class="text-muted">{{ product.short_description }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add to Cart Form -->
+                        <form method="post" action="{% url 'cart:add_to_cart' %}" id="add-to-cart-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                            <!-- Size Selection -->
+                            {% if sizes %}
+                            <div class="border-top mt-4 mb-3 product-option">
+                                <small class="text-uppercase pt-4 d-block fw-bolder">
+                                    <span class="text-muted">Available Sizes</span> : <span class="selected-option fw-bold" data-pixr-product-option="size">Select Size</span>
+                                </small>
+                                <div class="mt-4 d-flex justify-content-start flex-wrap align-items-start">
+                                    {% for size in sizes %}
+                                    <div class="form-check-option form-check-rounded">
+                                        <input type="radio" name="size_id" value="{{ size.id }}" id="size-{{ size.id }}" {% if forloop.first %}checked{% endif %}>
+                                        <label for="size-{{ size.id }}">
+                                            <small>{{ size.name }}</small>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Color Selection -->
+                            {% if colors %}
+                            <div class="mb-3">
+                                <small class="text-uppercase pt-4 d-block fw-bolder text-muted">
+                                    Available Colors :
+                                </small>
+                                <div class="mt-4 d-flex justify-content-start flex-wrap align-items-start">
+                                    {% for color in colors %}
+                                    <div class="form-check-option me-2 mb-2">
+                                        <input type="radio" name="color_id" value="{{ color.id }}" id="color-{{ color.id }}" {% if forloop.first %}checked{% endif %}>
+                                        <label for="color-{{ color.id }}" class="d-flex align-items-center">
+                                            <span class="d-inline-block me-2" style="width: 30px; height: 30px; background-color: {{ color.hex_code }}; border: 2px solid #ddd; border-radius: 50%;"></span>
+                                            <small>{{ color.name }}</small>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Quantity -->
+                            <div class="mb-3">
+                                <small class="text-uppercase pt-4 d-block fw-bolder text-muted">Quantity</small>
+                                <div class="mt-2">
+                                    <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ product.stock_quantity }}" style="width: 100px;">
+                                </div>
+                            </div>
+
+                            <!-- Add to Cart Button -->
+                            {% if product.can_order %}
+                            <button type="submit" class="btn btn-dark w-100 mt-4 mb-0 hover-lift-sm hover-boxshadow">Add To Shopping Bag</button>
+                            {% else %}
+                            <button type="button" class="btn btn-secondary w-100 mt-4 mb-0" disabled>Out of Stock</button>
+                            {% endif %}
+                        </form>
+
+                        <!-- Product Highlights-->
+                        <div class="my-5">
+                            <div class="row">
+                                <div class="col-12 col-md-4">
+                                    <div class="text-center px-2">
+                                        <i class="ri-24-hours-line ri-2x"></i>
+                                        <small class="d-block mt-1">Fast Delivery</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="text-center px-2">
+                                        <i class="ri-secure-payment-line ri-2x"></i>
+                                        <small class="d-block mt-1">Secure Checkout</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="text-center px-2">
+                                        <i class="ri-service-line ri-2x"></i>
+                                        <small class="d-block mt-1">Easy Returns</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- / Product Highlights-->
+
+                        <!-- Product Accordion -->
+                        {% if product.description %}
+                        <div class="accordion" id="accordionProduct">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        Product Details
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionProduct">
+                                    <div class="accordion-body">
+                                        {{ product.description|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <!-- / Product Accordion-->
+                    </div>
+                </div>
+            </div>
+            <!-- / Product Information-->
+        </div>
+        <!-- / Product Top Section-->
+
+        <!-- Related Products-->
+        {% if related_products %}
+        <div class="row g-0 mt-7">
+            <div class="col-12" data-aos="fade-up">
+                <h3 class="fs-4 fw-bolder mt-7 mb-4">You May Also Like</h3>
+                <!-- Swiper Latest -->
+                <div class="swiper-container" data-swiper data-options='{
+                    "spaceBetween": 10,
+                    "loop": true,
+                    "autoplay": {
+                      "delay": 5000,
+                      "disableOnInteraction": false
+                    },
+                    "navigation": {
+                      "nextEl": ".swiper-next",
+                      "prevEl": ".swiper-prev"
+                    },
+                    "breakpoints": {
+                      "600": {
+                        "slidesPerView": 2
+                      },
+                      "1024": {
+                        "slidesPerView": 3
+                      },
+                      "1400": {
+                        "slidesPerView": 4
+                      }
+                    }
+                  }'>
+                    <div class="swiper-wrapper">
+                        {% for product in related_products %}
+                        <div class="swiper-slide">
+                            {% product_card product %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="swiper-btn swiper-disabled-hide swiper-prev swiper-btn-side btn-icon bg-dark text-white shadow-lg mt-n5 ms-3"><i class="ri-arrow-left-s-line ri-lg"></i></div>
+                    <div class="swiper-btn swiper-disabled-hide swiper-next swiper-btn-side swiper-btn-side-right btn-icon bg-dark text-white shadow-lg mt-n5 me-3"><i class="ri-arrow-right-s-line ri-lg"></i></div>
+                </div>
+                <!-- / Swiper Latest-->
+            </div>
+        </div>
+        {% endif %}
+        <!-- / Related Products-->
+
+    </div>
+
+    <!-- /Page Content -->
+</section>
+<!-- / Main Section-->
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Update selected size display
+    document.querySelectorAll('input[name="size_id"]').forEach(input => {
+        input.addEventListener('change', function() {
+            document.querySelector('[data-pixr-product-option="size"]').textContent = this.nextElementSibling.textContent.trim();
+        });
+    });
+
+    // Wishlist toggle functionality for related products
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.wishlist-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+
+                fetch('{% url "toggle_wishlist" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'product_id=' + productId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const icon = this.querySelector('i');
+                    if (data.added) {
+                        icon.classList.remove('ri-heart-line');
+                        icon.classList.add('ri-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('ri-heart-fill', 'text-danger');
+                        icon.classList.add('ri-heart-line');
+                    }
+
+                    // Update wishlist count
+                    const countEl = document.getElementById('wishlist-count');
+                    if (countEl) {
+                        countEl.textContent = data.wishlist_count;
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}
