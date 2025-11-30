@@ -87,6 +87,16 @@ class ProductListView(ListView):
         context['search_query'] = self.request.GET.get('q', '')
         context['current_sort'] = self.request.GET.get('sort', 'newest')
 
+        # Current category object
+        category_slug = self.request.GET.get('category')
+        if category_slug:
+            try:
+                context['current_category_obj'] = Category.objects.get(slug=category_slug)
+            except Category.DoesNotExist:
+                context['current_category_obj'] = None
+        else:
+            context['current_category_obj'] = None
+
         # Build query string for pagination
         query_params = self.request.GET.copy()
         if 'page' in query_params:
@@ -166,6 +176,7 @@ class NewArrivalsView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'New Arrivals'
+        context['product_count'] = self.get_queryset().count()
         return context
 
 
@@ -185,4 +196,5 @@ class OnSaleView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'On Sale'
+        context['product_count'] = self.get_queryset().count()
         return context
