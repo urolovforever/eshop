@@ -6,66 +6,258 @@
 
 {% block content %}
 <!-- Main Section-->
-<section class="mt-5 overflow-hidden">
-    <div class="container-fluid">
+<section class="mt-0">
+    <!-- Page Content Goes Here -->
 
-        <!-- Breadcrumbs -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Products</li>
-            </ol>
-        </nav>
+    <!-- Category Top Banner -->
+    <div class="py-10 bg-img-cover bg-overlay-dark position-relative overflow-hidden bg-pos-center-center rounded-0"
+        style="background-image: url({% static 'images/banners/banner-category-top.jpg' %});">
+        <div class="container-fluid position-relative z-index-20" data-aos="fade-right" data-aos-delay="300">
+            <h1 class="fw-bold display-6 mb-4 text-white">
+                {% if current_category_obj %}{{ current_category_obj.name }}{% else %}All Products{% endif %}
+            </h1>
+            <div class="col-12 col-md-6">
+                <p class="text-white mb-0 fs-5">
+                    {% if current_category_obj and current_category_obj.description %}
+                        {{ current_category_obj.description }}
+                    {% else %}
+                        Discover our latest collection of premium products. Whether you're looking for new arrivals or special deals, we have something for everyone!
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Category Top Banner -->
 
-        <div class="row">
-            <!-- Filters Sidebar -->
-            <div class="col-12 col-lg-3">
-                <div class="pe-lg-4">
-                    <!-- Search -->
-                    <div class="mb-4">
-                        <form method="get" action="">
-                            <div class="input-group">
-                                <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query }}">
-                                <button class="btn btn-dark" type="submit"><i class="ri-search-line"></i></button>
+    <div class="container-fluid" data-aos="fade-in">
+        <!-- Category Toolbar-->
+        <div class="d-flex justify-content-between items-center pt-5 pb-4 flex-column flex-lg-row">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                        {% if current_category_obj %}
+                        <li class="breadcrumb-item"><a href="{% url 'product:product_list' %}">Products</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ current_category_obj.name }}</li>
+                        {% else %}
+                        <li class="breadcrumb-item active" aria-current="page">Products</li>
+                        {% endif %}
+                    </ol>
+                </nav>
+                <h1 class="fw-bold fs-3 mb-2">
+                    {% if current_category_obj %}{{ current_category_obj.name }}{% else %}All Products{% endif %} ({{ product_count }})
+                </h1>
+                <p class="m-0 text-muted small">
+                    Showing {% if products %}{{ products|length }}{% else %}0{% endif %} of {{ product_count }}
+                </p>
+            </div>
+            <div class="d-flex justify-content-end align-items-center mt-4 mt-lg-0 flex-column flex-md-row">
+
+                <!-- Filter Trigger-->
+                <button class="btn bg-light p-3 me-md-3 d-flex align-items-center fs-7 lh-1 w-100 mb-2 mb-md-0 w-md-auto"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasFilters"
+                        aria-controls="offcanvasFilters">
+                    <i class="ri-equalizer-line me-2"></i> Filters
+                </button>
+                <!-- / Filter Trigger-->
+
+                <!-- Sort Options-->
+                <form method="get" action="" class="d-inline w-100 w-md-auto">
+                    {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                    {% for color in selected_colors %}<input type="hidden" name="color" value="{{ color }}">{% endfor %}
+                    {% if current_min_price %}<input type="hidden" name="min_price" value="{{ current_min_price }}">{% endif %}
+                    {% if current_max_price %}<input type="hidden" name="max_price" value="{{ current_max_price }}">{% endif %}
+
+                    <select name="sort" class="form-select form-select-sm border-0 bg-light p-3 pe-5 lh-1 fs-7" onchange="this.form.submit()">
+                        <option value="" {% if not current_sort %}selected{% endif %}>Sort By</option>
+                        <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    </select>
+                </form>
+                <!-- / Sort Options-->
+            </div>
+        </div>
+        <!-- /Category Toolbar-->
+
+        <!-- Products-->
+        {% if products %}
+        <div class="row g-4">
+            {% for product in products %}
+            <div class="col-12 col-sm-6 col-lg-4">
+                {% product_card product %}
+            </div>
+            {% endfor %}
+        </div>
+        <!-- / Products-->
+
+        <!-- Pagination-->
+        {% if is_paginated and page_obj.has_next %}
+        <div class="d-flex flex-column f-w-44 mx-auto my-5 text-center">
+            <small class="text-muted">Showing {{ products|length }} of {{ product_count }} products</small>
+            <div class="progress f-h-1 mt-3">
+                {% widthratio page_obj.number page_obj.paginator.num_pages 100 as progress_percent %}
+                <div class="progress-bar bg-dark" role="progressbar" style="width: {{ progress_percent }}%"
+                     aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="btn btn-outline-dark btn-sm mt-5 align-self-center py-3 px-4 border-2">Load More</a>
+        </div>
+        {% endif %}
+        <!-- / Pagination-->
+        {% else %}
+        <!-- No Products Found -->
+        <div class="text-center py-5">
+            <i class="ri-shopping-bag-line ri-4x text-muted mb-3 d-block"></i>
+            <h4 class="text-muted">No products found</h4>
+            <p class="text-muted">Try adjusting your filters or search query</p>
+            <a href="{% url 'product:product_list' %}" class="btn btn-dark">Clear Filters</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- /Page Content -->
+</section>
+<!-- / Main Section-->
+
+<!-- Offcanvas Filters-->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilters" aria-labelledby="offcanvasFiltersLabel">
+    <div class="offcanvas-header pb-0 d-flex align-items-center">
+        <h5 class="offcanvas-title" id="offcanvasFiltersLabel">Category Filters</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="d-flex flex-column justify-content-between w-100 h-100">
+
+            <!-- Filters-->
+            <div>
+
+                <!-- Search Filter -->
+                <div class="py-4 widget-filter border-top">
+                    <a class="small text-body text-decoration-none text-secondary-hover transition-all fs-6 fw-bolder d-block collapse-icon-chevron"
+                       data-bs-toggle="collapse" href="#filter-modal-search" role="button" aria-expanded="true"
+                       aria-controls="filter-modal-search">
+                        Search
+                    </a>
+                    <div id="filter-modal-search" class="collapse show">
+                        <form method="get" action="" class="mt-3">
+                            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                            {% for color in selected_colors %}<input type="hidden" name="color" value="{{ color }}">{% endfor %}
+                            {% if current_min_price %}<input type="hidden" name="min_price" value="{{ current_min_price }}">{% endif %}
+                            {% if current_max_price %}<input type="hidden" name="max_price" value="{{ current_max_price }}">{% endif %}
+                            {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+
+                            <div class="input-group mb-3 py-1">
+                                <input type="text" name="q" class="form-control py-2 filter-search rounded"
+                                       placeholder="Search products..." aria-label="Search" value="{{ search_query }}">
+                                <button class="btn btn-dark" type="submit">
+                                    <i class="ri-search-2-line"></i>
+                                </button>
                             </div>
                         </form>
                     </div>
+                </div>
+                <!-- / Search Filter -->
 
-                    <!-- Categories Filter -->
-                    {% if categories %}
-                    <div class="py-4 border-bottom">
-                        <h6 class="fw-bolder mb-3">Categories</h6>
-                        <div class="list-group">
-                            <a href="{% url 'product:product_list' %}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
-                                All Products
-                            </a>
+                <!-- Price Filter -->
+                <div class="py-4 widget-filter widget-filter-price border-top">
+                    <a class="small text-body text-decoration-none text-secondary-hover transition-all fs-6 fw-bolder d-block collapse-icon-chevron"
+                       data-bs-toggle="collapse" href="#filter-modal-price" role="button" aria-expanded="true"
+                       aria-controls="filter-modal-price">
+                        Price
+                    </a>
+                    <div id="filter-modal-price" class="collapse show">
+                        <form method="get" action="" class="mt-3">
+                            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                            {% for color in selected_colors %}<input type="hidden" name="color" value="{{ color }}">{% endfor %}
+                            {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <div class="input-group mb-0 me-2 border">
+                                    <span class="input-group-text bg-transparent fs-7 p-2 text-muted border-0">$</span>
+                                    <input type="number" min="0" max="10000" step="1" name="min_price"
+                                           class="filter-min form-control-sm border flex-grow-1 text-muted border-0"
+                                           placeholder="Min" value="{{ current_min_price }}">
+                                </div>
+                                <div class="input-group mb-0 ms-2 border">
+                                    <span class="input-group-text bg-transparent fs-7 p-2 text-muted border-0">$</span>
+                                    <input type="number" min="0" max="10000" step="1" name="max_price"
+                                           class="filter-max form-control-sm flex-grow-1 text-muted border-0"
+                                           placeholder="Max" value="{{ current_max_price }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm w-100 mt-3">Apply</button>
+                        </form>
+                        {% if price_range %}
+                        <small class="text-muted d-block mt-2">
+                            Available range: {{ price_range.min_price|taka }} - {{ price_range.max_price|taka }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- / Price Filter -->
+
+                <!-- Categories Filter -->
+                {% if categories %}
+                <div class="py-4 widget-filter border-top">
+                    <a class="small text-body text-decoration-none text-secondary-hover transition-all fs-6 fw-bolder d-block collapse-icon-chevron"
+                       data-bs-toggle="collapse" href="#filter-modal-categories" role="button" aria-expanded="true"
+                       aria-controls="filter-modal-categories">
+                        Categories
+                    </a>
+                    <div id="filter-modal-categories" class="collapse show">
+                        <div class="filter-options mt-3">
+                            <div class="form-group form-check-custom mb-2">
+                                <a href="{% url 'product:product_list' %}"
+                                   class="text-decoration-none {% if not current_category %}fw-bold text-dark{% else %}text-body{% endif %}">
+                                    All Products
+                                </a>
+                            </div>
                             {% for category in categories %}
-                            <a href="?category={{ category.slug }}" class="list-group-item list-group-item-action {% if current_category == category.slug %}active{% endif %}">
-                                {{ category.name }}
-                            </a>
+                            <div class="form-group form-check-custom mb-2">
+                                <a href="?category={{ category.slug }}"
+                                   class="text-decoration-none {% if current_category == category.slug %}fw-bold text-dark{% else %}text-body{% endif %}">
+                                    {{ category.name }}
+                                </a>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
-                    {% endif %}
+                </div>
+                {% endif %}
+                <!-- / Categories Filter -->
 
-                    <!-- Colors Filter -->
-                    {% if available_colors %}
-                    <div class="py-4 border-bottom">
-                        <h6 class="fw-bolder mb-3">Colors</h6>
-                        <form method="get" action="" id="color-filter-form">
+                <!-- Colour Filter -->
+                {% if available_colors %}
+                <div class="py-4 widget-filter border-top">
+                    <a class="small text-body text-decoration-none text-secondary-hover transition-all fs-6 fw-bolder d-block collapse-icon-chevron"
+                       data-bs-toggle="collapse" href="#filter-modal-colour" role="button" aria-expanded="true"
+                       aria-controls="filter-modal-colour">
+                        Colours
+                    </a>
+                    <div id="filter-modal-colour" class="collapse show">
+                        <form method="get" action="" id="color-filter-form" class="mt-3">
                             {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
                             {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
                             {% if current_min_price %}<input type="hidden" name="min_price" value="{{ current_min_price }}">{% endif %}
                             {% if current_max_price %}<input type="hidden" name="max_price" value="{{ current_max_price }}">{% endif %}
                             {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
 
-                            <div class="d-flex flex-wrap gap-2">
+                            <div class="filter-options">
                                 {% for color in available_colors %}
-                                <div class="form-check">
-                                    <input class="form-check-input color-checkbox" type="checkbox" name="color" value="{{ color.name }}" id="color-{{ forloop.counter }}"
+                                <div class="form-group form-check-custom mb-2">
+                                    <input type="checkbox" class="form-check-input color-checkbox"
+                                           name="color" value="{{ color.name }}" id="filter-colours-modal-{{ forloop.counter0 }}"
                                            {% if color.name in selected_colors %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color-{{ forloop.counter }}">
-                                        <span class="d-inline-block me-2" style="width: 20px; height: 20px; background-color: {{ color.hex_code }}; border: 1px solid #ddd; border-radius: 3px;"></span>
+                                    <label class="form-check-label fw-normal text-body flex-grow-1 d-flex align-items-center"
+                                           for="filter-colours-modal-{{ forloop.counter0 }}">
+                                        <span class="d-inline-block me-2 rounded-circle"
+                                              style="width: 16px; height: 16px; background-color: {{ color.hex_code }}; border: 1px solid #ddd;"></span>
                                         {{ color.name }}
                                     </label>
                                 </div>
@@ -73,124 +265,29 @@
                             </div>
                         </form>
                     </div>
-                    {% endif %}
-
-                    <!-- Price Filter -->
-                    <div class="py-4 border-bottom">
-                        <h6 class="fw-bolder mb-3">Price Range</h6>
-                        <form method="get" action="" id="price-filter-form">
-                            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-                            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-                            {% for color in selected_colors %}<input type="hidden" name="color" value="{{ color }}">{% endfor %}
-                            {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <input type="number" name="min_price" class="form-control form-control-sm" placeholder="Min" value="{{ current_min_price }}">
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" name="max_price" class="form-control form-control-sm" placeholder="Max" value="{{ current_max_price }}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-sm btn-dark w-100">Apply Price Filter</button>
-                        </form>
-                        {% if price_range %}
-                        <small class="text-muted d-block mt-2">Range: {{ price_range.min_price|taka }} - {{ price_range.max_price|taka }}</small>
-                        {% endif %}
-                    </div>
-
-                    <!-- Clear Filters -->
-                    {% if search_query or current_category or selected_colors or current_min_price or current_max_price %}
-                    <div class="py-4">
-                        <a href="{% url 'product:product_list' %}" class="btn btn-outline-dark w-100">Clear All Filters</a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Products Grid -->
-            <div class="col-12 col-lg-9">
-                <!-- Toolbar -->
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                    <div>
-                        <p class="m-0 text-muted">Showing {{ products|length }} of {{ product_count }} product{{ product_count|pluralize }}</p>
-                    </div>
-                    <div>
-                        <form method="get" action="" class="d-inline">
-                            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-                            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-                            {% for color in selected_colors %}<input type="hidden" name="color" value="{{ color }}">{% endfor %}
-                            {% if current_min_price %}<input type="hidden" name="min_price" value="{{ current_min_price }}">{% endif %}
-                            {% if current_max_price %}<input type="hidden" name="max_price" value="{{ current_max_price }}">{% endif %}
-
-                            <select name="sort" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
-                                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
-                                <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
-                                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
-                                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
-                {% if products %}
-                <div class="row g-4 mb-5">
-                    {% for product in products %}
-                    <div class="col-6 col-md-4 col-xl-3">
-                        {% product_card product %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Pagination -->
-                {% if is_paginated %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">Previous</span>
-                        </li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item"><a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ num }}">{{ num }}</a></li>
-                        {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">Next</span>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="ri-shopping-bag-line ri-4x text-muted mb-3 d-block"></i>
-                    <h4 class="text-muted">No products found</h4>
-                    <p class="text-muted">Try adjusting your filters or search query</p>
-                    <a href="{% url 'product:product_list' %}" class="btn btn-dark">Clear Filters</a>
                 </div>
                 {% endif %}
+                <!-- / Colour Filter -->
             </div>
+            <!-- / Filters-->
+
+            <!-- Filter Button-->
+            <div class="border-top pt-3">
+                {% if search_query or current_category or selected_colors or current_min_price or current_max_price %}
+                <a href="{% url 'product:product_list' %}" class="btn btn-outline-dark mt-2 d-block hover-lift-sm hover-boxshadow">
+                    Clear All Filters
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-dark mt-2 d-block hover-lift-sm hover-boxshadow w-100"
+                        data-bs-dismiss="offcanvas" aria-label="Close">
+                    Done
+                </button>
+            </div>
+            <!-- /Filter Button-->
         </div>
-
     </div>
-</section>
-<!-- / Main Section-->
+</div>
+<!-- / Offcanvas Filters-->
 {% endblock content %}
 
 {% block extra_js %}
