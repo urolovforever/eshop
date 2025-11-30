@@ -125,7 +125,7 @@
 <!-- / Main Section-->
 
 <!-- Offcanvas Filters-->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilters" aria-labelledby="offcanvasFiltersLabel">
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilters" aria-labelledby="offcanvasFiltersLabel" style="z-index: 9999;">
     <div class="offcanvas-header pb-0 d-flex align-items-center">
         <h5 class="offcanvas-title" id="offcanvasFiltersLabel">Category Filters</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -292,6 +292,21 @@
 
 {% block extra_js %}
 <script>
+    // Test Bootstrap loading
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Bootstrap version:', typeof bootstrap !== 'undefined' ? bootstrap : 'Bootstrap not loaded!');
+
+        // Initialize offcanvas manually if needed
+        var offcanvasElement = document.getElementById('offcanvasFilters');
+        if (offcanvasElement && typeof bootstrap !== 'undefined') {
+            console.log('Offcanvas element found');
+            var offcanvasInstance = new bootstrap.Offcanvas(offcanvasElement);
+            console.log('Offcanvas initialized:', offcanvasInstance);
+        } else {
+            console.error('Offcanvas element or Bootstrap not found');
+        }
+    });
+
     // Auto-submit color filter on change
     document.querySelectorAll('.color-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
