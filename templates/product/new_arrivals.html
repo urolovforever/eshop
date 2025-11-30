@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load nix %}
+
+{% block title %}{{ page_title }} - {{ config.site_name|default:'OldSkool' }}{% endblock %}
+
+{% block content %}
+<!-- Main Section-->
+<section class="mt-5 overflow-hidden">
+    <div class="container-fluid">
+
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold">{{ page_title }}</h1>
+            <p class="lead text-muted">Check out our latest arrivals</p>
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="row g-4 mb-5">
+            {% for product in products %}
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                {% product_card product %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="ri-shopping-bag-line ri-4x text-muted mb-3 d-block"></i>
+            <h4 class="text-muted">No new arrivals at the moment</h4>
+            <p class="text-muted">Check back soon for new products</p>
+            <a href="{% url 'product:product_list' %}" class="btn btn-dark">Browse All Products</a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+<!-- / Main Section-->
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Wishlist toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.wishlist-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+
+                fetch('{% url "toggle_wishlist" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'product_id=' + productId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const icon = this.querySelector('i');
+                    if (data.added) {
+                        icon.classList.remove('ri-heart-line');
+                        icon.classList.add('ri-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('ri-heart-fill', 'text-danger');
+                        icon.classList.add('ri-heart-line');
+                    }
+
+                    // Update wishlist count
+                    const countEl = document.getElementById('wishlist-count');
+                    if (countEl) {
+                        countEl.textContent = data.wishlist_count;
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}

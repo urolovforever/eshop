@@ -1,0 +1,247 @@
+{% load static %}
+{% load nix %}
+<!doctype html>
+<html lang="en">
+
+<!-- Head -->
+<head>
+  <!-- Page Meta Tags-->
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}{{ config.site_description|default:'' }}{% endblock %}">
+  <meta name="author" content="{{ config.site_name|default:'OldSkool' }}">
+  <meta name="keywords" content="{% block meta_keywords %}{% endblock %}">
+
+  <!-- Custom Google Fonts-->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Roboto:wght@300;400;700&display=auto"
+    rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/favicon/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon/favicon-16x16.png' %}">
+  <link rel="mask-icon" href="{% static 'images/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Vendor CSS -->
+  <link rel="stylesheet" href="{% static 'css/libs.bundle.css' %}" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'css/theme.bundle.css' %}" />
+
+  <!-- Fix for custom scrollbar if JS is disabled-->
+  <noscript>
+    <style>
+      /**
+          * Reinstate scrolling for non-JS clients
+          */
+      .simplebar-content-wrapper {
+        overflow: auto;
+      }
+    </style>
+  </noscript>
+
+  <!-- Page Title -->
+  <title>{% block title %}{{ config.site_name|default:'OldSkool' }}{% endblock %}</title>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {% block navbar %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white flex-column border-0  ">
+        <div class="container-fluid">
+            <div class="w-100">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+                    <!-- Logo-->
+                    <a class="navbar-brand fw-bold fs-3 m-0 p-0 flex-shrink-0 order-0" href="{% url 'index' %}">
+                        <div class="d-flex align-items-center">
+                            <svg class="f-w-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 77.53 72.26"><path d="M10.43,54.2h0L0,36.13,10.43,18.06,20.86,0H41.72L10.43,54.2Zm67.1-7.83L73,54.2,68.49,62,45,48.47,31.29,72.26H20.86l-5.22-9L52.15,0H62.58l5.21,9L54.06,32.82,77.53,46.37Z" fill="currentColor" fill-rule="evenodd"/></svg>
+                        </div>
+                    </a>
+                    <!-- / Logo-->
+
+                    <!-- Navbar Icons-->
+                    <ul class="list-unstyled mb-0 d-flex align-items-center order-1 order-lg-2 nav-sidelinks">
+
+                        <!-- Mobile Nav Toggler-->
+                        <li class="d-lg-none">
+                            <span class="nav-link text-body d-flex align-items-center cursor-pointer" data-bs-toggle="collapse"
+                                data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
+                                aria-label="Toggle navigation"><i class="ri-menu-line ri-lg me-1"></i> Menu</span>
+                        </li>
+                        <!-- /Mobile Nav Toggler-->
+
+                        <!-- Navbar Search-->
+                        <li class="d-none d-sm-block">
+                            <span class="nav-link text-body search-trigger cursor-pointer">Search</span>
+
+                            <!-- Search navbar overlay-->
+                            <div class="navbar-search d-none">
+                                <div class="input-group mb-3 h-100">
+                                    <span class="input-group-text px-4 bg-transparent border-0"><i
+                                            class="ri-search-line ri-lg"></i></span>
+                                    <form method="get" action="{% url 'product:product_list' %}" class="w-100 d-flex">
+                                        <input type="text" name="q" class="form-control text-body bg-transparent border-0"
+                                            placeholder="Enter your search terms..." value="{{ search_query|default:'' }}">
+                                        <span
+                                            class="input-group-text px-4 cursor-pointer disable-child-pointer close-search bg-transparent border-0"><i
+                                                class="ri-close-circle-line ri-lg"></i></span>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="search-overlay"></div>
+                            <!-- / Search navbar overlay-->
+
+                        </li>
+                        <!-- /Navbar Search-->
+
+                        <!-- Navbar Login-->
+                        <li class="ms-1 d-none d-lg-inline-block">
+                            {% if user.is_authenticated %}
+                            <a class="nav-link text-body" href="{% url 'wishlist' %}">
+                                Wishlist (<span id="wishlist-count">{% get_cart_item_count request %}</span>)
+                            </a>
+                            {% else %}
+                            <a class="nav-link text-body" href="{% url 'login' %}">
+                                Account
+                            </a>
+                            {% endif %}
+                        </li>
+                        <!-- /Navbar Login-->
+
+                        <!-- Navbar Cart Icon-->
+                        <li class="ms-1 d-inline-block position-relative dropdown-cart">
+                            <button class="nav-link me-0 disable-child-pointer border-0 p-0 bg-transparent text-body"
+                                type="button">
+                                Bag (<span id="cart-count">{% get_cart_item_count request %}</span>)
+                            </button>
+                            {% cart_summary %}
+                        </li>
+                        <!-- /Navbar Cart Icon-->
+
+                    </ul>
+                    <!-- Navbar Icons-->
+
+                    <!-- Main Navigation-->
+                    <div class="flex-shrink-0 collapse navbar-collapse navbar-collapse-light w-auto flex-grow-1 order-2 order-1"
+                        id="navbarNavDropdown">
+
+                        <!-- Menu-->
+                        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'index' %}" role="button">
+                                  Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'product:product_list' %}" role="button">
+                                  Shop
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'product:new_arrivals' %}" role="button">
+                                  New Arrivals
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'product:on_sale' %}" role="button">
+                                  Sale
+                                </a>
+                            </li>
+                            {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'wishlist' %}" role="button">
+                                  Wishlist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}" role="button">
+                                  Logout
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}" role="button">
+                                  Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'register' %}" role="button">
+                                  Register
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                        <!-- / Menu-->
+
+                    </div>
+                    <!-- / Main Navigation-->
+
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- / Navbar-->
+    {% endblock navbar %}
+
+    {% block content %}
+    {% endblock content %}
+
+    {% block footer %}
+    <!-- Footer -->
+    <footer class="border-top py-5 mt-4  ">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center flex-column flex-lg-row">
+                <div>
+                    <ul class="list-unstyled">
+                        {% if config.instagram_url %}
+                        <li class="d-inline-block me-1"><a class="text-decoration-none text-dark-hover transition-all"
+                                href="{{ config.instagram_url }}"><i class="ri-instagram-fill"></i></a></li>
+                        {% endif %}
+                        {% if config.facebook_url %}
+                        <li class="d-inline-block me-1"><a class="text-decoration-none text-dark-hover transition-all"
+                                href="{{ config.facebook_url }}"><i class="ri-facebook-fill"></i></a></li>
+                        {% endif %}
+                        {% if config.twitter_url %}
+                        <li class="d-inline-block me-1"><a class="text-decoration-none text-dark-hover transition-all"
+                                href="{{ config.twitter_url }}"><i class="ri-twitter-fill"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="d-flex align-items-center justify-content-end flex-column flex-lg-row">
+                    <p class="small m-0 text-center text-lg-start">&copy; {% now "Y" %} {{ config.site_name|default:'OldSkool' }} All Rights Reserved.</p>
+                    <ul class="list-unstyled mb-0 ms-lg-4 mt-3 mt-lg-0 d-flex justify-content-end align-items-center">
+                        <li class="bg-light p-2 d-flex align-items-center justify-content-center me-2">
+                            <i class="pi pi-sm pi-paypal"></i></li>
+                        <li class="bg-light p-2 d-flex align-items-center justify-content-center me-2">
+                            <i class="pi pi-sm pi-mastercard"></i></li>
+                        <li class="bg-light p-2 d-flex align-items-center justify-content-center me-2">
+                            <i class="pi pi-sm pi-american-express"></i></li>
+                        <li class="bg-light p-2 d-flex align-items-center justify-content-center"><i
+                                class="pi pi-sm pi-visa"></i>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- / Footer-->
+    {% endblock footer %}
+
+    <!-- Theme JS -->
+    <!-- Vendor JS -->
+    <script src="{% static 'js/vendor.bundle.js' %}"></script>
+
+    <!-- Theme JS -->
+    <script src="{% static 'js/theme.bundle.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
