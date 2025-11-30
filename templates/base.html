@@ -101,11 +101,19 @@
                         </li>
                         <!-- /Navbar Search-->
 
-                        <!-- Navbar Login-->
+                        <!-- Navbar Wishlist-->
+                        <li class="ms-1 d-none d-lg-inline-block">
+                            <a class="nav-link text-body" href="{% url 'wishlist' %}">
+                                Wishlist
+                            </a>
+                        </li>
+                        <!-- /Navbar Wishlist-->
+
+                        <!-- Navbar Account-->
                         <li class="ms-1 d-none d-lg-inline-block">
                             {% if user.is_authenticated %}
-                            <a class="nav-link text-body" href="{% url 'wishlist' %}">
-                                Wishlist (<span id="wishlist-count">{% get_cart_item_count request %}</span>)
+                            <a class="nav-link text-body" href="{% url 'logout' %}">
+                                Logout
                             </a>
                             {% else %}
                             <a class="nav-link text-body" href="{% url 'login' %}">
@@ -113,7 +121,7 @@
                             </a>
                             {% endif %}
                         </li>
-                        <!-- /Navbar Login-->
+                        <!-- /Navbar Account-->
 
                         <!-- Navbar Cart Icon-->
                         <li class="ms-1 d-inline-block position-relative dropdown-cart">
@@ -154,29 +162,6 @@
                                   Sale
                                 </a>
                             </li>
-                            {% if user.is_authenticated %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'wishlist' %}" role="button">
-                                  Wishlist
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'logout' %}" role="button">
-                                  Logout
-                                </a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'login' %}" role="button">
-                                  Login
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'register' %}" role="button">
-                                  Register
-                                </a>
-                            </li>
-                            {% endif %}
                         </ul>
                         <!-- / Menu-->
 
