@@ -14,9 +14,9 @@ urlpatterns = [
     path('wishlist/', views.wishlist_view, name='wishlist'),
     path('wishlist/toggle/', views.toggle_wishlist, name='toggle_wishlist'),
     path('wishlist/count/', views.get_wishlist_count, name='wishlist_count'),
-    path('product/', include('apps.product.urls'), name='product'),
-    path('cart/', include('apps.cart.urls'), name='cart'),
-    path('checkout/', include('apps.order.urls'), name='checkout'),
+    path('product/', include('apps.product.urls')),
+    path('cart/', include('apps.cart.urls')),
+    path('checkout/', include('apps.order.urls')),
 ]
 # serve media files
 if settings.DEBUG:
