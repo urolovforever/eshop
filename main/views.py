@@ -127,6 +127,29 @@ def logout_view(request):
     return redirect('index')
 
 
+def forgot_password(request):
+    """Forgot password view"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+
+        if not email:
+            messages.error(request, 'Please provide your email address.')
+            return render(request, 'forgotten-password.html')
+
+        # Check if user with this email exists
+        try:
+            user = User.objects.get(email=email)
+            # TODO: Implement password reset email sending
+            messages.success(request, f'Password reset instructions have been sent to {email}. Please check your inbox.')
+            return redirect('login')
+        except User.DoesNotExist:
+            # Don't reveal if email exists or not for security
+            messages.success(request, f'If an account exists with {email}, you will receive password reset instructions.')
+            return redirect('login')
+
+    return render(request, 'forgotten-password.html')
+
+
 @login_required
 @require_POST
 def toggle_wishlist(request):

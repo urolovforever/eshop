@@ -4,82 +4,96 @@
 
 {% block title %}Login - {{ config.site_name|default:'OldSkool' }}{% endblock %}
 
-{% block navbar %}{% endblock %}
-{% block footer %}{% endblock %}
-
 {% block content %}
 <!-- Main Section-->
-<section class="mt-0 overflow-lg-hidden vh-lg-100">
+<section class="mt-0">
     <!-- Page Content Goes Here -->
-    <div class="container">
-        <div class="row g-0 vh-lg-100">
-            <div class="col-12 col-lg-7 pt-5 pt-lg-10">
-                <div class="pe-lg-5">
-                    <!-- Logo-->
-                    <a class="navbar-brand fw-bold fs-3 flex-shrink-0 mx-0 px-0" href="{% url 'index' %}">
-                        <div class="d-flex align-items-center">
-                            <svg class="f-w-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 77.53 72.26"><path d="M10.43,54.2h0L0,36.13,10.43,18.06,20.86,0H41.72L10.43,54.2Zm67.1-7.83L73,54.2,68.49,62,45,48.47,31.29,72.26H20.86l-5.22-9L52.15,0H62.58l5.21,9L54.06,32.82,77.53,46.37Z" fill="currentColor" fill-rule="evenodd"/></svg>
+
+    <!-- Page Header -->
+    <div class="py-6 bg-light position-relative overflow-hidden rounded-0">
+        <div class="container-fluid position-relative z-index-20">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Login</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold fs-3 mb-0">Account Login</h1>
+        </div>
+    </div>
+    <!-- / Page Header -->
+
+    <div class="container-fluid">
+        <div class="row justify-content-center py-5">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="bg-white p-5 rounded shadow-sm">
+                    <h3 class="fs-4 fw-bold mb-3 text-center">Welcome Back</h3>
+                    <p class="text-muted mb-4 text-center">Please login to your account to continue</p>
+
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    </a>
-                    <!-- / Logo-->
-
-                    <div class="mt-5 pe-lg-5">
-                        <h3 class="fs-2 fw-bold mb-3">Login</h3>
-                        <p class="text-muted mb-5">Welcome back! Please login to your account.</p>
-
-                        <!-- Messages -->
-                        {% if messages %}
-                        <div class="mb-4">
-                            {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <form method="post" action="{% url 'login' %}">
-                            {% csrf_token %}
-
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username or Email</label>
-                                <input type="text" class="form-control" id="username" name="username" required autofocus>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Remember me</label>
-                            </div>
-
-                            <button type="submit" class="btn btn-dark w-100 mb-3">Login</button>
-
-                            <div class="text-center">
-                                <p class="text-muted">
-                                    Don't have an account? <a href="{% url 'register' %}" class="text-dark fw-bold">Register</a>
-                                </p>
-                            </div>
-                        </form>
+                        {% endfor %}
                     </div>
-                </div>
-            </div>
+                    {% endif %}
 
-            <div class="col-12 col-lg-5 bg-light pt-lg-10 pb-5 pb-lg-0 d-none d-lg-flex">
-                <div class="p-5 d-flex flex-column justify-content-center align-items-center h-100">
-                    <div class="text-center">
-                        <i class="ri-shopping-bag-3-line ri-5x text-dark mb-4"></i>
-                        <h4 class="fw-bold mb-3">Shop With Us</h4>
-                        <p class="text-muted">Get access to exclusive deals and faster checkout.</p>
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-bolder">Username</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   placeholder="Enter your username"
+                                   required
+                                   autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="password" class="form-label fw-bolder mb-0">Password</label>
+                                <a href="{% url 'forgot_password' %}" class="text-muted small text-decoration-none">Forgot Password?</a>
+                            </div>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="Enter your password"
+                                   required>
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 mb-3 py-3">Login</button>
+
+                        <div class="text-center mt-4">
+                            <p class="text-muted mb-0">
+                                Don't have an account? <a href="{% url 'register' %}" class="text-dark fw-bold text-decoration-none">Create Account</a>
+                            </p>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 pt-4 border-top text-center">
+                        <p class="text-muted small mb-0">
+                            <i class="ri-lock-line me-1"></i>
+                            Your information is secure and encrypted
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- /Page Content -->
 </section>
 <!-- / Main Section-->
