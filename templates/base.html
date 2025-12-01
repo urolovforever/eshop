@@ -104,7 +104,7 @@
                         <!-- Navbar Wishlist-->
                         <li class="ms-1 d-none d-lg-inline-block">
                             <a class="nav-link text-body" href="{% url 'wishlist' %}">
-                                Wishlist
+                                Wishlist{% if user.is_authenticated %} (<span id="wishlist-count">{% get_wishlist_item_count request %}</span>){% endif %}
                             </a>
                         </li>
                         <!-- /Navbar Wishlist-->
