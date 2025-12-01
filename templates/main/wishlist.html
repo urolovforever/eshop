@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load nix %}
+
+{% block title %}My Wishlist - {{ config.site_name|default:'OldSkool' }}{% endblock %}
+
+{% block content %}
+<!-- Main Section-->
+<section class="mt-0">
+    <!-- Page Content Goes Here -->
+
+    <!-- Category Top Banner -->
+    <div class="py-6 bg-light position-relative overflow-hidden rounded-0">
+        <div class="container-fluid position-relative z-index-20" data-aos="fade-right" data-aos-delay="300">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Wishlist</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold fs-3 mb-0">My Wishlist</h1>
+        </div>
+    </div>
+    <!-- Category Top Banner -->
+
+    <div class="container-fluid" data-aos="fade-in">
+        <div class="py-5">
+            {% if wishlist_items %}
+            <!-- Wishlist Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="m-0 text-muted">{{ wishlist_items.count }} item{{ wishlist_items.count|pluralize }} in your wishlist</p>
+                <a href="{% url 'product:product_list' %}" class="btn btn-outline-dark btn-sm">
+                    <i class="ri-add-line me-2"></i>Continue Shopping
+                </a>
+            </div>
+
+            <!-- Wishlist Products Grid -->
+            <div class="row g-4">
+                {% for item in wishlist_items %}
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <!-- Card Product-->
+                    <div class="card border border-transparent position-relative overflow-hidden h-100 transparent">
+                        <div class="card-img position-relative">
+                            <div class="card-badges">
+                                {% if item.product.on_sale %}
+                                    <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-danger rounded-circle d-block me-1"></span> Sale</span>
+                                {% endif %}
+                                {% if item.product.is_new_arrival %}
+                                    <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-success rounded-circle d-block me-1"></span> New In</span>
+                                {% endif %}
+                                {% if item.product.stock_quantity == 0 %}
+                                    <span class="badge badge-card"><span class="f-w-2 f-h-2 bg-secondary rounded-circle d-block me-1"></span> Sold Out</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Remove from Wishlist Icon -->
+                            <span class="position-absolute top-0 end-0 p-2 z-index-20 text-danger cursor-pointer wishlist-remove"
+                                  data-product-id="{{ item.product.id }}"
+                                  data-product-name="{{ item.product.name }}"
+                                  title="Remove from wishlist">
+                                <i class="ri-close-circle-fill ri-lg"></i>
+                            </span>
+
+                            <picture class="position-relative overflow-hidden d-block bg-light">
+                                {% if item.product.get_primary_image %}
+                                    <img class="w-100 img-fluid position-relative z-index-10"
+                                         title="{{ item.product.name }}"
+                                         src="{{ item.product.get_primary_image.image.url }}"
+                                         alt="{{ item.product.name }}">
+                                {% else %}
+                                    <img class="w-100 img-fluid position-relative z-index-10"
+                                         title="{{ item.product.name }}"
+                                         src="{% static 'images/products/placeholder.jpg' %}"
+                                         alt="{{ item.product.name }}">
+                                {% endif %}
+                            </picture>
+
+                            {% if item.product.can_order %}
+                            <div class="position-absolute start-0 bottom-0 end-0 z-index-20 p-2">
+                                <a href="{% url 'product:product_detail' item.product.slug %}"
+                                   class="btn btn-quick-add w-100">
+                                    <i class="ri-shopping-cart-line me-2"></i> View & Add to Cart
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body px-0">
+                            <a class="text-decoration-none link-cover" href="{% url 'product:product_detail' item.product.slug %}">
+                                {{ item.product.name }}
+                            </a>
+
+                            <small class="text-muted d-block">
+                                {% if item.product|has_color_variants %}{{ item.product.colors.count }} colour{{ item.product.colors.count|pluralize }}{% endif %}{% if item.product|has_color_variants and item.product|has_size_variants %}, {% endif %}{% if item.product|has_size_variants %}{{ item.product.sizes.count }} size{{ item.product.sizes.count|pluralize }}{% endif %}
+                            </small>
+
+                            {% if item.product.on_sale and item.product.get_sale_price %}
+                                <p class="mt-2 mb-0 small">
+                                    <s class="text-muted">{{ item.product.price|taka }}</s>
+                                    <span class="text-danger">{{ item.product.get_sale_price|taka }}</span>
+                                </p>
+                            {% else %}
+                                <p class="mt-2 mb-0 small">{{ item.product.price|taka }}</p>
+                            {% endif %}
+
+                            <small class="text-muted d-block mt-2">
+                                <i class="ri-time-line"></i> Added {{ item.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                    <!--/ Card Product-->
+                </div>
+                {% endfor %}
+            </div>
+            <!-- / Wishlist Products Grid -->
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <a href="{% url 'product:product_list' %}" class="btn btn-outline-dark">
+                    <i class="ri-arrow-left-line me-2"></i>Continue Shopping
+                </a>
+            </div>
+            {% else %}
+            <!-- Empty Wishlist -->
+            <div class="text-center py-5">
+                <i class="ri-heart-line ri-4x text-muted mb-3 d-block"></i>
+                <h4 class="text-muted mb-3">Your wishlist is empty</h4>
+                <p class="text-muted mb-4">Save your favorite items here for later!</p>
+                <a href="{% url 'product:product_list' %}" class="btn btn-dark">
+                    <i class="ri-shopping-bag-line me-2"></i>Browse Products
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- /Page Content -->
+</section>
+<!-- / Main Section-->
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Remove from wishlist functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.wishlist-remove').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const productId = this.dataset.productId;
+                const productName = this.dataset.productName;
+                const card = this.closest('.col-12');
+
+                if (!confirm(`Remove "${productName}" from your wishlist?`)) {
+                    return;
+                }
+
+                fetch('{% url "toggle_wishlist" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'product_id=' + productId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.action === 'removed') {
+                        // Fade out and remove the card
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0';
+
+                        setTimeout(() => {
+                            card.remove();
+
+                            // Check if wishlist is now empty
+                            const remainingItems = document.querySelectorAll('.wishlist-remove').length;
+                            if (remainingItems === 0) {
+                                // Reload page to show empty state
+                                location.reload();
+                            }
+                        }, 300);
+
+                        // Show success message (you can customize this)
+                        console.log(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to remove item from wishlist. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}

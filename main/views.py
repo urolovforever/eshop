@@ -144,18 +144,24 @@ def toggle_wishlist(request):
     if wishlist_item:
         # Remove from wishlist
         wishlist_item.delete()
+        wishlist_count = Wishlist.objects.filter(user=request.user).count()
         return JsonResponse({
             'success': True,
             'action': 'removed',
-            'message': f'{product.name} removed from wishlist'
+            'added': False,
+            'message': f'{product.name} removed from wishlist',
+            'wishlist_count': wishlist_count
         })
     else:
         # Add to wishlist
         Wishlist.objects.create(user=request.user, product=product)
+        wishlist_count = Wishlist.objects.filter(user=request.user).count()
         return JsonResponse({
             'success': True,
             'action': 'added',
-            'message': f'{product.name} added to wishlist'
+            'added': True,
+            'message': f'{product.name} added to wishlist',
+            'wishlist_count': wishlist_count
         })
 
 

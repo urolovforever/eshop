@@ -193,6 +193,15 @@ def get_cart_item_count(request):
 
 
 @register.simple_tag
+def get_wishlist_item_count(request):
+    """Get total items in user's wishlist"""
+    from main.models import Wishlist
+    if request.user.is_authenticated:
+        return Wishlist.objects.filter(user=request.user).count()
+    return 0
+
+
+@register.simple_tag
 def get_user_orders(user, limit=5):
     """Get user's recent orders"""
     if user.is_authenticated:
