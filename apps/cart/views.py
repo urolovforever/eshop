@@ -215,3 +215,59 @@ def remove_promo_code(request):
             'success': False,
             'error': f'An error occurred: {str(e)}'
         }, status=500)
+
+
+@require_POST
+def quick_add_to_cart(request):
+    """Quick add product to cart with default color and size via AJAX"""
+    try:
+        cart = get_or_create_cart(request)
+        product_id = request.POST.get('product_id')
+
+        if not product_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Product ID is required'
+            }, status=400)
+
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+
+        # Check if product can be ordered
+        if not product.can_order(1):
+            return JsonResponse({
+                'success': False,
+                'message': f'{product.name} is out of stock'
+            }, status=400)
+
+        # Get default color and size (first available)
+        color = product.colors.first() if product.colors.exists() else None
+        size = product.sizes.first() if product.sizes.exists() else None
+
+        # Check if product with same color/size already exists in cart
+        existing_item = cart.items.filter(product=product, size=size, color=color).first()
+
+        if existing_item:
+            # Update quantity
+            existing_item.quantity += 1
+            existing_item.save()
+        else:
+            # Create new cart item
+            CartItem.objects.create(
+                cart=cart,
+                product=product,
+                quantity=1,
+                size=size,
+                color=color
+            )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{product.name} added to cart',
+            'cart_count': cart.get_total_items()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        }, status=500)

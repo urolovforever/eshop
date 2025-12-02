@@ -130,7 +130,7 @@
                         <div class="alert alert-success">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Promo: <strong>{{ cart.promo_code.code }}</strong></span>
-                                <form method="post" action="{% url 'cart:remove_promo_code' %}" class="d-inline">
+                                <form method="post" action="{% url 'cart:remove_promo_code' %}" class="d-inline" id="remove-promo-form">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-link text-danger">Remove</button>
                                 </form>
@@ -179,7 +179,34 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert(data.message || 'Invalid promo code');
+                alert(data.message || data.error || 'Invalid promo code');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            this.submit(); // Fallback to regular form submission
+        });
+    });
+
+    // AJAX promo code removal
+    document.getElementById('remove-promo-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Error removing promo code');
             }
         })
         .catch(error => {
