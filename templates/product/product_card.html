@@ -61,7 +61,7 @@
     </div>
 
     <div class="card-body px-0">
-        <a class="text-decoration-none link-cover" href="{% url 'product:product_detail' product.slug %}">
+        <a class="text-decoration-none text-dark" href="{% url 'product:product_detail' product.slug %}">
             {{ product.name }}
         </a>
 
@@ -69,14 +69,16 @@
             {% if product|has_color_variants %}{{ product.colors.count }} colour{{ product.colors.count|pluralize }}{% endif %}{% if product|has_color_variants and product|has_size_variants %}, {% endif %}{% if product|has_size_variants %}{{ product.sizes.count }} size{{ product.sizes.count|pluralize }}{% endif %}
         </small>
 
-        {% if product.on_sale and product.get_sale_price %}
-            <p class="mt-2 mb-0 small">
-                <s class="text-muted">{{ product.price|taka }}</s>
-                <span class="text-danger">{{ product.get_sale_price|taka }}</span>
-            </p>
-        {% else %}
-            <p class="mt-2 mb-0 small">{{ product.price|taka }}</p>
-        {% endif %}
+        <a class="text-decoration-none" href="{% url 'product:product_detail' product.slug %}">
+            {% if product.on_sale and product.get_sale_price %}
+                <p class="mt-2 mb-0 small">
+                    <s class="text-muted">{{ product.price|taka }}</s>
+                    <span class="text-danger">{{ product.get_sale_price|taka }}</span>
+                </p>
+            {% else %}
+                <p class="mt-2 mb-0 small text-dark">{{ product.price|taka }}</p>
+            {% endif %}
+        </a>
     </div>
 </div>
 <!--/ Card Product-->
