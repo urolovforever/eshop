@@ -421,9 +421,16 @@
                         },
                         body: 'product_id=' + productId
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 403 || response.status === 401) {
+                            // User not authenticated, redirect to login
+                            window.location.href = '{% url "login" %}?next=' + window.location.pathname;
+                            return null;
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        if (data.success) {
+                        if (data && data.success) {
                             const icon = wishlistBtn.querySelector('i');
                             if (data.added) {
                                 icon.classList.remove('ri-heart-line');
@@ -444,7 +451,7 @@
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        showToast('An error occurred. Please try again.', 'error');
+                        showToast('Please login to add items to wishlist', 'error');
                     });
                 }
             });
@@ -477,18 +484,15 @@
                         if (data.success) {
                             showToast('Added to cart!');
 
-                            // Update cart count
-                            const cartCountEl = document.getElementById('cart-count');
-                            if (cartCountEl && data.cart_count) {
-                                cartCountEl.textContent = data.cart_count;
-                            }
+                            // Reload page to update cart dropdown
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
                         } else {
                             showToast(data.message || 'Could not add to cart', 'error');
+                            quickAddBtn.innerHTML = originalText;
+                            quickAddBtn.disabled = false;
                         }
-
-                        // Reset button
-                        quickAddBtn.innerHTML = originalText;
-                        quickAddBtn.disabled = false;
                     })
                     .catch(error => {
                         console.error('Error:', error);
