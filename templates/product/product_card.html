@@ -20,7 +20,7 @@
               data-product-id="{{ product.id }}"
               style="cursor: pointer;">
             {% if request.user.is_authenticated %}
-                <i class="ri-heart-{% if product in request.user.wishlist_items.all %}fill text-danger{% else %}line{% endif %}"></i>
+                <i class="ri-heart-{% if product.wishlisted_by.filter(user=request.user).exists %}fill text-danger{% else %}line{% endif %}"></i>
             {% else %}
                 <i class="ri-heart-line"></i>
             {% endif %}
