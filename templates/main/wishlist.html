@@ -57,8 +57,9 @@
                             <span class="position-absolute top-0 end-0 p-2 z-index-20 text-danger cursor-pointer wishlist-remove"
                                   data-product-id="{{ item.product.id }}"
                                   data-product-name="{{ item.product.name }}"
-                                  title="Remove from wishlist">
-                                <i class="ri-close-circle-fill ri-lg"></i>
+                                  title="Remove from wishlist"
+                                  style="cursor: pointer;">
+                                <i class="ri-heart-fill ri-lg"></i>
                             </span>
 
                             <picture class="position-relative overflow-hidden d-block bg-light">
@@ -149,12 +150,12 @@
                 e.stopPropagation();
 
                 const productId = this.dataset.productId;
-                const productName = this.dataset.productName;
+                const icon = this.querySelector('i');
                 const card = this.closest('.col-12');
 
-                if (!confirm(`Remove "${productName}" from your wishlist?`)) {
-                    return;
-                }
+                // Change icon to unfilled immediately for visual feedback
+                icon.classList.remove('ri-heart-fill');
+                icon.classList.add('ri-heart-line');
 
                 fetch('{% url "toggle_wishlist" %}', {
                     method: 'POST',
@@ -181,14 +182,13 @@
                                 location.reload();
                             }
                         }, 300);
-
-                        // Show success message (you can customize this)
-                        console.log(data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to remove item from wishlist. Please try again.');
+                    // Revert icon on error
+                    icon.classList.remove('ri-heart-line');
+                    icon.classList.add('ri-heart-fill');
                 });
             });
         });

@@ -220,6 +220,13 @@ def remove_promo_code(request):
 @require_POST
 def quick_add_to_cart(request):
     """Quick add product to cart with default color and size via AJAX"""
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'success': False,
+            'message': 'Please login to add items to cart'
+        }, status=401)
+
     try:
         cart = get_or_create_cart(request)
         product_id = request.POST.get('product_id')

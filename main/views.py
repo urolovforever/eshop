@@ -150,16 +150,22 @@ def forgot_password(request):
     return render(request, 'forgotten-password.html')
 
 
-@login_required
 @require_POST
 def toggle_wishlist(request):
     """Toggle product in user's wishlist (add or remove)"""
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Authentication required'}, status=401)
+
     product_id = request.POST.get('product_id')
 
     if not product_id:
         return JsonResponse({'success': False, 'error': 'Product ID is required'}, status=400)
 
-    product = get_object_or_404(Product, id=product_id, is_active=True)
+    try:
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+    except:
+        return JsonResponse({'success': False, 'error': 'Product not found'}, status=404)
 
     # Check if product is already in wishlist
     wishlist_item = Wishlist.objects.filter(user=request.user, product=product).first()

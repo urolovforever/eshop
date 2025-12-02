@@ -114,6 +114,10 @@
       position: relative;
     }
 
+    .wishlist-toggle i {
+      font-size: 1.5rem;
+    }
+
     /* Toast Notification */
     .toast-notification {
       position: fixed;
@@ -479,16 +483,23 @@
                         },
                         body: 'product_id=' + productId
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 401) {
+                            // User not authenticated, redirect to login
+                            window.location.href = '{% url "login" %}?next=' + window.location.pathname;
+                            return null;
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        if (data.success) {
+                        if (data && data.success) {
                             showToast('Added to cart!');
 
                             // Reload page to update cart dropdown
                             setTimeout(() => {
                                 location.reload();
                             }, 1000);
-                        } else {
+                        } else if (data) {
                             showToast(data.message || 'Could not add to cart', 'error');
                             quickAddBtn.innerHTML = originalText;
                             quickAddBtn.disabled = false;
