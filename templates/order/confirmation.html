@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load nix %}
+
+{% block title %}Order Confirmation - {{ config.site_name|default:'OldSkool' }}{% endblock %}
+
+{% block content %}
+<!-- Main Section-->
+<section class="mt-5 container-fluid">
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <!-- Success Message -->
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <i class="ri-check-line text-success" style="font-size: 80px;"></i>
+                    </div>
+                    <h1 class="fs-2 fw-bolder mb-3">Order Confirmed!</h1>
+                    <p class="lead text-muted">Thank you for your order. We've received your order and will process it soon.</p>
+                </div>
+
+                <!-- Order Details -->
+                <div class="bg-light p-4 rounded mb-4">
+                    <h3 class="fs-5 fw-bolder mb-3">Order Details</h3>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Order Number:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {{ order.order_number }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Order Date:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {{ order.created_at|date:"d M Y, H:i" }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Status:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Payment Method:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            Cash on Delivery
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="bg-light p-4 rounded mb-4">
+                    <h3 class="fs-5 fw-bolder mb-3">Shipping Address</h3>
+                    <p class="mb-0">
+                        <strong>{{ order.address.name }}</strong><br>
+                        {{ order.address.phone }}<br>
+                        {% if order.address.email %}{{ order.address.email }}<br>{% endif %}
+                        {{ order.address.address }}<br>
+                        {{ order.address.district }}
+                    </p>
+                </div>
+
+                <!-- Order Items -->
+                <div class="bg-light p-4 rounded mb-4">
+                    <h3 class="fs-5 fw-bolder mb-4">Order Items</h3>
+                    {% for item in order.items.all %}
+                    <div class="d-flex align-items-start mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="me-3">
+                            {% if item.product.get_primary_image %}
+                            <img src="{{ item.product.get_primary_image.image.url }}"
+                                 alt="{{ item.product.name }}"
+                                 class="img-fluid rounded"
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                            <small class="text-muted">
+                                {% if item.color %}Color: {{ item.color.name }}{% endif %}
+                                {% if item.size %}{% if item.color %}, {% endif %}Size: {{ item.size.name }}{% endif %}
+                            </small>
+                            <div class="mt-1">
+                                <span class="text-muted">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>{{ item.get_total_price|taka }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Order Total -->
+                <div class="bg-light p-4 rounded mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong>{{ order.subtotal|taka }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <strong>{{ order.shipping_cost|taka }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-0">
+                        <strong class="fs-5">Total:</strong>
+                        <strong class="fs-5">{{ order.total_amount|taka }}</strong>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="text-center">
+                    <a href="{% url 'index' %}" class="btn btn-dark px-5">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- / Main Section-->
+{% endblock content %}
