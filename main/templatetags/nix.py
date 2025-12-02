@@ -250,11 +250,17 @@ def stock_status(product, show_stock_count=False):
 
 @register.filter
 def taka(value):
-    """Format value as taka"""
+    """Format value as so'm (Uzbek currency)"""
     try:
-        return f"{int(value)} ৳"
+        # Format number with space as thousand separator
+        num = int(value)
+        # Convert to string and add spaces every 3 digits from right
+        num_str = str(num)
+        # Reverse the string, add spaces, then reverse back
+        formatted = ' '.join([num_str[::-1][i:i+3] for i in range(0, len(num_str), 3)])[::-1]
+        return f"{formatted} so'm"
     except (ValueError, TypeError):
-        return f"0 ৳"
+        return "0 so'm"
 
 
 @register.filter

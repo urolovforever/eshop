@@ -35,13 +35,24 @@
             <div class="col-12 col-md-6 col-xl-7">
                 <div class="row g-3" data-aos="fade-right">
                     {% if images %}
-                        {% for image in images %}
-                        <div class="col-12">
-                            <picture>
-                                <img class="img-fluid" data-zoomable src="{{ image.image.url }}" alt="{{ product.name }}">
+                        <div class="col-2">
+                            <!-- Thumbnails Column -->
+                            <div class="d-flex flex-column gap-2">
+                                {% for image in images %}
+                                <div class="product-thumbnail {% if forloop.first %}active{% endif %}" data-image="{{ image.image.url }}" style="cursor: pointer;">
+                                    <picture class="border {% if forloop.first %}border-dark border-2{% else %}border-light{% endif %} d-block">
+                                        <img class="img-fluid" src="{{ image.image.url }}" alt="{{ product.name }}">
+                                    </picture>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-10">
+                            <!-- Main Image -->
+                            <picture id="main-product-image">
+                                <img class="img-fluid w-100" data-zoomable src="{{ images.0.image.url }}" alt="{{ product.name }}" id="main-image">
                             </picture>
                         </div>
-                        {% endfor %}
                     {% else %}
                         <div class="col-12">
                             <picture>
@@ -125,16 +136,13 @@
                             {% if colors %}
                             <div class="mb-3">
                                 <small class="text-uppercase pt-4 d-block fw-bolder text-muted">
-                                    Available Colors :
+                                    Available Colors
                                 </small>
-                                <div class="mt-4 d-flex justify-content-start flex-wrap align-items-start">
+                                <div class="mt-4 d-flex justify-content-start flex-wrap align-items-start gap-2">
                                     {% for color in colors %}
-                                    <div class="form-check-option me-2 mb-2">
-                                        <input type="radio" name="color_id" value="{{ color.id }}" id="color-{{ color.id }}" {% if forloop.first %}checked{% endif %}>
-                                        <label for="color-{{ color.id }}" class="d-flex align-items-center">
-                                            <span class="d-inline-block me-2" style="width: 30px; height: 30px; background-color: {{ color.hex_code }}; border: 2px solid #ddd; border-radius: 50%;"></span>
-                                            <small>{{ color.name }}</small>
-                                        </label>
+                                    <div class="color-option">
+                                        <input type="radio" name="color_id" value="{{ color.id }}" id="color-{{ color.id }}" class="d-none color-radio" {% if forloop.first %}checked{% endif %}>
+                                        <label for="color-{{ color.id }}" class="color-swatch" style="background-color: {{ color.hex_code }};" title="{{ color.name }}"></label>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -215,14 +223,15 @@
                 <!-- Swiper Latest -->
                 <div class="swiper-container" data-swiper data-options='{
                     "spaceBetween": 10,
+                    "slidesPerView": 1,
                     "loop": true,
                     "autoplay": {
                       "delay": 5000,
                       "disableOnInteraction": false
                     },
                     "navigation": {
-                      "nextEl": ".swiper-next",
-                      "prevEl": ".swiper-prev"
+                      "nextEl": ".swiper-next-related",
+                      "prevEl": ".swiper-prev-related"
                     },
                     "breakpoints": {
                       "600": {
@@ -244,8 +253,8 @@
                         {% endfor %}
                     </div>
 
-                    <div class="swiper-btn swiper-disabled-hide swiper-prev swiper-btn-side btn-icon bg-dark text-white shadow-lg mt-n5 ms-3"><i class="ri-arrow-left-s-line ri-lg"></i></div>
-                    <div class="swiper-btn swiper-disabled-hide swiper-next swiper-btn-side swiper-btn-side-right btn-icon bg-dark text-white shadow-lg mt-n5 me-3"><i class="ri-arrow-right-s-line ri-lg"></i></div>
+                    <div class="swiper-btn swiper-disabled-hide swiper-prev-related swiper-btn-side btn-icon bg-dark text-white shadow-lg mt-n5 ms-3"><i class="ri-arrow-left-s-line ri-lg"></i></div>
+                    <div class="swiper-btn swiper-disabled-hide swiper-next-related swiper-btn-side swiper-btn-side-right btn-icon bg-dark text-white shadow-lg mt-n5 me-3"><i class="ri-arrow-right-s-line ri-lg"></i></div>
                 </div>
                 <!-- / Swiper Latest-->
             </div>
@@ -269,38 +278,29 @@
         });
     });
 
-    // Wishlist toggle functionality for related products
+    // Product image gallery - thumbnail click handler
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.wishlist-toggle').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const productId = this.dataset.productId;
+        const thumbnails = document.querySelectorAll('.product-thumbnail');
+        const mainImage = document.getElementById('main-image');
 
-                fetch('{% url "toggle_wishlist" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: 'product_id=' + productId
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const icon = this.querySelector('i');
-                    if (data.added) {
-                        icon.classList.remove('ri-heart-line');
-                        icon.classList.add('ri-heart-fill', 'text-danger');
-                    } else {
-                        icon.classList.remove('ri-heart-fill', 'text-danger');
-                        icon.classList.add('ri-heart-line');
-                    }
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                // Update main image
+                const newImageUrl = this.dataset.image;
+                if (mainImage && newImageUrl) {
+                    mainImage.src = newImageUrl;
+                }
 
-                    // Update wishlist count
-                    const countEl = document.getElementById('wishlist-count');
-                    if (countEl) {
-                        countEl.textContent = data.wishlist_count;
-                    }
+                // Update active thumbnail border
+                thumbnails.forEach(t => {
+                    const border = t.querySelector('picture');
+                    border.classList.remove('border-dark', 'border-2');
+                    border.classList.add('border-light');
                 });
+
+                const activeBorder = this.querySelector('picture');
+                activeBorder.classList.remove('border-light');
+                activeBorder.classList.add('border-dark', 'border-2');
             });
         });
     });

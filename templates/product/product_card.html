@@ -27,18 +27,26 @@
         </a>
         {% endif %}
 
-        <picture class="position-relative overflow-hidden d-block bg-light">
-            {% if product.get_primary_image %}
-                <img class="w-100 img-fluid position-relative z-index-10"
+        <picture class="position-relative overflow-hidden d-block bg-light product-card-picture">
+            {% with images=product.get_all_images %}
+            {% if images %}
+                <img class="w-100 img-fluid position-relative z-index-10 product-card-img-main transition-all"
                      title="{{ product.name }}"
-                     src="{{ product.get_primary_image.image.url }}"
+                     src="{{ images.0.image.url }}"
                      alt="{{ product.name }}">
+                {% if images.1 %}
+                <img class="w-100 img-fluid position-absolute top-0 start-0 z-index-5 product-card-img-hover transition-all opacity-0"
+                     title="{{ product.name }}"
+                     src="{{ images.1.image.url }}"
+                     alt="{{ product.name }}">
+                {% endif %}
             {% else %}
                 <img class="w-100 img-fluid position-relative z-index-10"
                      title="{{ product.name }}"
                      src="{% static 'images/products/placeholder.jpg' %}"
                      alt="{{ product.name }}">
             {% endif %}
+            {% endwith %}
         </picture>
 
         {% if product.can_order %}

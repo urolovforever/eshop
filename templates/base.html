@@ -47,6 +47,124 @@
   <!-- Page Title -->
   <title>{% block title %}{{ config.site_name|default:'OldSkool' }}{% endblock %}</title>
 
+  <style>
+    /* Product Card Hover Effect */
+    .product-card-picture:hover .product-card-img-hover {
+      opacity: 1 !important;
+      z-index: 15 !important;
+    }
+
+    .product-card-picture:hover .product-card-img-main {
+      z-index: 5 !important;
+    }
+
+    .transition-all {
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Dropdown Menu Styles */
+    .dropdown-menu-shop {
+      min-width: 600px;
+    }
+
+    @media (min-width: 992px) {
+      .dropdown-menu-shop {
+        left: 50% !important;
+        transform: translateX(-50%);
+      }
+    }
+
+    .dropdown-menu-shop .dropdown-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Quick Add Button Styles */
+    .btn-quick-add {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease-in-out;
+      background: white;
+      color: #000;
+      border: none;
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .card:hover .btn-quick-add {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .btn-quick-add:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 250px;
+      background: #28a745;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      animation: slideIn 0.3s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast-notification.fade-out {
+      animation: slideOut 0.3s ease-in-out forwards;
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    /* Color Swatch Styles */
+    .color-swatch {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid #e0e0e0;
+      transition: all 0.2s ease;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .color-radio:checked + .color-swatch {
+      border: 3px solid #000;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
+    }
+  </style>
+
   {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -147,10 +265,26 @@
                                   Home
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'product:product_list' %}" role="button">
+                            <li class="nav-item dropdown position-static">
+                                <a class="nav-link dropdown-toggle" href="#" id="shopDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                   Shop
                                 </a>
+                                <div class="dropdown-menu dropdown-menu-shop border-0 shadow-lg p-4 mt-2" aria-labelledby="shopDropdown">
+                                    <div class="row g-3">
+                                        {% if all_categories %}
+                                            {% for category in all_categories %}
+                                            <div class="col-12 col-md-6 col-lg-3">
+                                                <a class="dropdown-item text-decoration-none py-2 px-3 rounded" href="{% url 'product:product_list' %}?category={{ category.slug }}">
+                                                    {{ category.name }}
+                                                </a>
+                                            </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="border-top mt-3 pt-3">
+                                        <a class="btn btn-dark w-100" href="{% url 'product:product_list' %}">View All Products</a>
+                                    </div>
+                                </div>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'product:new_arrivals' %}" role="button">
@@ -228,6 +362,137 @@
 
     <!-- Theme JS -->
     <script src="{% static 'js/theme.bundle.js' %}"></script>
+
+    <!-- Global Scripts -->
+    <script>
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.style.background = type === 'success' ? '#28a745' : '#dc3545';
+            toast.innerHTML = `<i class="ri-check-line me-2"></i>${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // Wishlist Toggle - Global handler
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(e) {
+                const wishlistBtn = e.target.closest('.wishlist-toggle');
+                if (wishlistBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const productId = wishlistBtn.dataset.productId;
+                    const csrftoken = getCookie('csrftoken');
+
+                    fetch('{% url "toggle_wishlist" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: 'product_id=' + productId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const icon = wishlistBtn.querySelector('i');
+                            if (data.added) {
+                                icon.classList.remove('ri-heart-line');
+                                icon.classList.add('ri-heart-fill', 'text-danger');
+                            } else {
+                                icon.classList.remove('ri-heart-fill', 'text-danger');
+                                icon.classList.add('ri-heart-line');
+                            }
+
+                            // Update wishlist count
+                            const countEl = document.getElementById('wishlist-count');
+                            if (countEl) {
+                                countEl.textContent = data.wishlist_count;
+                            }
+
+                            showToast(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('An error occurred. Please try again.', 'error');
+                    });
+                }
+            });
+
+            // Quick Add Button Handler
+            document.addEventListener('click', function(e) {
+                const quickAddBtn = e.target.closest('.btn-quick-add');
+                if (quickAddBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const productId = quickAddBtn.dataset.productId;
+                    const csrftoken = getCookie('csrftoken');
+
+                    // Show loading state
+                    const originalText = quickAddBtn.innerHTML;
+                    quickAddBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Adding...';
+                    quickAddBtn.disabled = true;
+
+                    fetch('{% url "cart:quick_add_to_cart" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: 'product_id=' + productId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Added to cart!');
+
+                            // Update cart count
+                            const cartCountEl = document.getElementById('cart-count');
+                            if (cartCountEl && data.cart_count) {
+                                cartCountEl.textContent = data.cart_count;
+                            }
+                        } else {
+                            showToast(data.message || 'Could not add to cart', 'error');
+                        }
+
+                        // Reset button
+                        quickAddBtn.innerHTML = originalText;
+                        quickAddBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('An error occurred. Please try again.', 'error');
+                        quickAddBtn.innerHTML = originalText;
+                        quickAddBtn.disabled = false;
+                    });
+                }
+            });
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
