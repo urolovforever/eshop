@@ -32,25 +32,25 @@
         <div class="row g-9" data-sticky-container>
 
             <!-- Product Images-->
-            <div class="col-12 col-md-5 col-xl-6">
+            <div class="col-12 col-md-6 col-xl-7">
                 <div class="row g-2" data-aos="fade-right">
                     {% if images %}
-                        <div class="col-3 col-md-2">
+                        <div class="col-2 col-md-2">
                             <!-- Thumbnails Column -->
                             <div class="d-flex flex-column gap-2">
                                 {% for image in images %}
                                 <div class="product-thumbnail {% if forloop.first %}active{% endif %}" data-image="{{ image.image.url }}" style="cursor: pointer;">
                                     <picture class="border {% if forloop.first %}border-dark border-2{% else %}border-light{% endif %} d-block">
-                                        <img class="img-fluid" src="{{ image.image.url }}" alt="{{ product.name }}" style="width: 100%; height: auto;">
+                                        <img class="img-fluid" src="{{ image.image.url }}" alt="{{ product.name }}" style="width: 100%; height: auto; max-width: 80px;">
                                     </picture>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="col-9 col-md-10">
+                        <div class="col-10 col-md-10">
                             <!-- Main Image -->
                             <picture id="main-product-image">
-                                <img class="img-fluid w-100" data-zoomable src="{{ images.0.image.url }}" alt="{{ product.name }}" id="main-image" style="max-height: 600px; object-fit: contain;">
+                                <img class="img-fluid w-100" data-zoomable src="{{ images.0.image.url }}" alt="{{ product.name }}" id="main-image" style="max-height: 700px; object-fit: contain;">
                             </picture>
                         </div>
                     {% else %}
@@ -65,7 +65,7 @@
             <!-- /Product Images-->
 
             <!-- Product Information-->
-            <div class="col-12 col-md-7 col-xl-6">
+            <div class="col-12 col-md-6 col-xl-5">
                 <div class="sticky-top top-5">
                     <div class="pb-3" data-aos="fade-in">
                         <div class="d-flex align-items-center mb-3">

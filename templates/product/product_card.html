@@ -16,16 +16,15 @@
         </div>
 
         <!-- Wishlist Icon -->
-        {% if request.user.is_authenticated %}
         <span class="position-absolute top-0 end-0 p-2 z-index-20 text-muted cursor-pointer wishlist-toggle"
-              data-product-id="{{ product.id }}">
-            <i class="ri-heart-{% if product in request.user.wishlist_items.all %}fill text-danger{% else %}line{% endif %}"></i>
+              data-product-id="{{ product.id }}"
+              style="cursor: pointer;">
+            {% if request.user.is_authenticated %}
+                <i class="ri-heart-{% if product in request.user.wishlist_items.all %}fill text-danger{% else %}line{% endif %}"></i>
+            {% else %}
+                <i class="ri-heart-line"></i>
+            {% endif %}
         </span>
-        {% else %}
-        <a href="{% url 'login' %}" class="position-absolute top-0 end-0 p-2 z-index-20 text-muted">
-            <i class="ri-heart-line"></i>
-        </a>
-        {% endif %}
 
         <picture class="position-relative overflow-hidden d-block bg-light product-card-picture">
             {% with images=product.get_all_images %}
