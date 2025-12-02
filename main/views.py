@@ -84,7 +84,7 @@ def register(request):
             messages.error(request, 'An error occurred. Please try again.')
             return render(request, 'auth/register.html')
 
-    return render(request, 'auth/register.html')
+    return render(request, 'register.html')
 
 
 def login_view(request):
@@ -116,7 +116,7 @@ def login_view(request):
         else:
             messages.error(request, 'Invalid username or password.')
 
-    return render(request, 'auth/login.html')
+    return render(request, 'login.html')
 
 
 @login_required
