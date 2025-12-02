@@ -87,9 +87,11 @@
       color: #000;
       border: none;
       width: 100%;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 500;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      z-index: 30;
+      position: relative;
     }
 
     .card:hover .btn-quick-add {
@@ -100,6 +102,16 @@
     .btn-quick-add:hover {
       background: #000;
       color: #fff;
+    }
+
+    /* Prevent card link from interfering with buttons */
+    .card-img {
+      position: relative;
+    }
+
+    .wishlist-toggle {
+      z-index: 25;
+      position: relative;
     }
 
     /* Toast Notification */
@@ -265,25 +277,20 @@
                                   Home
                                 </a>
                             </li>
-                            <li class="nav-item dropdown position-static">
-                                <a class="nav-link dropdown-toggle" href="#" id="shopDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="{% url 'product:product_list' %}" id="shopDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                   Shop
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-shop border-0 shadow-lg p-4 mt-2" aria-labelledby="shopDropdown">
-                                    <div class="row g-3">
-                                        {% if all_categories %}
-                                            {% for category in all_categories %}
-                                            <div class="col-12 col-md-6 col-lg-3">
-                                                <a class="dropdown-item text-decoration-none py-2 px-3 rounded" href="{% url 'product:product_list' %}?category={{ category.slug }}">
-                                                    {{ category.name }}
-                                                </a>
-                                            </div>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                    <div class="border-top mt-3 pt-3">
-                                        <a class="btn btn-dark w-100" href="{% url 'product:product_list' %}">View All Products</a>
-                                    </div>
+                                <div class="dropdown-menu border-0 shadow-lg p-3" style="min-width: 200px;" aria-labelledby="shopDropdown">
+                                    {% if all_categories %}
+                                        {% for category in all_categories %}
+                                        <a class="dropdown-item py-2" href="{% url 'product:product_list' %}?category={{ category.slug }}">
+                                            {{ category.name }}
+                                        </a>
+                                        {% endfor %}
+                                        <div class="dropdown-divider"></div>
+                                    {% endif %}
+                                    <a class="dropdown-item py-2" href="{% url 'product:product_list' %}">View All Products</a>
                                 </div>
                             </li>
                             <li class="nav-item">
