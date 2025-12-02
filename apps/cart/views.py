@@ -47,8 +47,8 @@ def add_to_cart(request):
             return redirect('product_list')
         product_id = request.POST.get('product_id')
         quantity = int(request.POST.get('quantity', 1))
-        size_id = request.POST.get('size')
-        color_id = request.POST.get('color')
+        size_id = request.POST.get('size_id')
+        color_id = request.POST.get('color_id')
         size = None
         color = None
 
@@ -60,17 +60,17 @@ def add_to_cart(request):
                 size = get_object_or_404(Size, id=size_id, product=product)
             else:
                 messages.error(request, 'Please select a size.')
-                return redirect('product_detail', slug=product.slug)
+                return redirect('product:roduct_detail', slug=product.slug)
         if product.colors.exists():
             if not color_id == '':
                 color = get_object_or_404(Color, id=color_id, product=product)
             else:
                 messages.error(request, 'Please select a color.')
-                return redirect('product_detail', slug=product.slug)
+                return redirect('product:product_detail', slug=product.slug)
 
         if not product.can_order(quantity):
             messages.error(request, f'Sorry, {product.name} is out of stock or has insufficient quantity.')
-            return redirect('product_detail', slug=product.slug)
+            return redirect('product:product_detail', slug=product.slug)
         
         # If the Same product is already in the cart, update the quantity
         existing_item = cart.items.filter(product=product, size=size, color=color).first()
@@ -78,7 +78,7 @@ def add_to_cart(request):
             existing_item.quantity += quantity
             existing_item.save()
             messages.success(request, f'{product.name} quantity updated in cart.')
-            return redirect('product_detail', slug=product.slug)
+            return redirect('product:product_detail', slug=product.slug)
 
         
         # Create cart item
@@ -93,10 +93,10 @@ def add_to_cart(request):
             return redirect('checkout')
 
         messages.success(request, f'{product.name} added to cart.')
-        return redirect('product_detail', slug=product.slug)
+        return redirect('product:product_detail', slug=product.slug)
     except Exception as e:
         messages.error(request, f'Error adding item to cart: {e}')
-        return redirect('product_detail', slug=product.slug)
+        return redirect('product:product_detail', slug=product.slug)
 
 @require_POST
 def increase_cart_item_quantity(request):
@@ -107,14 +107,14 @@ def increase_cart_item_quantity(request):
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
         if cart_item.quantity >= cart_item.product.stock_quantity:
             messages.warning(request, "Stock limit up")
-            return redirect('cart')
+            return redirect('cart:cart_view')
         cart_item.quantity += 1
         cart_item.save()
-        return redirect('cart')
+        return redirect('cart:cart_view')
 
     except Exception as e:
         messages.error(request, f'Error updating item quantity in cart: {e}')
-        return redirect('cart')
+        return redirect('cart:cart_view')
     
 @require_POST
 def decrease_cart_item_quantity(request):
@@ -125,10 +125,10 @@ def decrease_cart_item_quantity(request):
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
         if cart_item.quantity == 1:
             messages.warning(request, "Can't decrease")
-            return redirect('cart')
+            return redirect('cart:cart_view')
         cart_item.quantity -= 1
         cart_item.save()
-        return redirect('cart')
+        return redirect('cart:cart_view')
 
     except Exception as e:
         messages.error(request, f'Error updating item quantity in cart: {e}')
@@ -145,11 +145,11 @@ def remove_from_cart(request):
         product_name = cart_item.product.name
         cart_item.delete()
         messages.success(request, f'{product_name} removed from cart.')
-        return redirect('cart')
+        return redirect('cart:cart_view')
 
     except Exception as e:
         messages.error(request, f'Error removing item from cart: {e}')
-        return redirect('cart')
+        return redirect('cart:cart_view')
 
 
 @require_POST

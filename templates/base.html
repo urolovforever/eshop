@@ -74,31 +74,36 @@
                             <span class="nav-link text-body d-flex align-items-center cursor-pointer" data-bs-toggle="collapse"
                                 data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
                                 aria-label="Toggle navigation"><i class="ri-menu-line ri-lg me-1"></i> Menu</span>
-                        </li>
-                        <!-- /Mobile Nav Toggler-->
-
-                        <!-- Navbar Search-->
                         <li class="d-none d-sm-block">
-                            <span class="nav-link text-body search-trigger cursor-pointer">Search</span>
+    <span class="nav-link text-body search-trigger cursor-pointer">Search</span>
 
-                            <!-- Search navbar overlay-->
-                            <div class="navbar-search d-none">
-                                <div class="input-group mb-3 h-100">
-                                    <span class="input-group-text px-4 bg-transparent border-0"><i
-                                            class="ri-search-line ri-lg"></i></span>
-                                    <form method="get" action="{% url 'product:product_list' %}" class="w-100 d-flex">
-                                        <input type="text" name="q" class="form-control text-body bg-transparent border-0"
-                                            placeholder="Enter your search terms..." value="{{ search_query|default:'' }}">
-                                        <span
-                                            class="input-group-text px-4 cursor-pointer disable-child-pointer close-search bg-transparent border-0"><i
-                                                class="ri-close-circle-line ri-lg"></i></span>
-                                    </form>
-                                </div>
-                            </div>
-                            <div class="search-overlay"></div>
-                            <!-- / Search navbar overlay-->
+    <div class="navbar-search d-none">
 
-                        </li>
+        <div class="h-100 w-100 d-flex align-items-center">
+
+            <form method="get" action="{% url 'product:product_list' %}" class="w-100 d-flex align-items-center">
+
+                <div class="input-group">
+                    <span class="input-group-text px-4 bg-transparent border-0">
+                        <i class="ri-search-line ri-lg"></i>
+                    </span>
+
+                    <input type="text" name="q"
+                           class="form-control text-body bg-transparent border-0 shadow-none"
+                           placeholder="Enter your search terms..."
+                           value="{{ search_query|default:'' }}">
+
+                    <span class="input-group-text px-4 cursor-pointer disable-child-pointer close-search bg-transparent border-0">
+                        <i class="ri-close-circle-line ri-lg"></i>
+                    </span>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="search-overlay"></div>
+    </li>
                         <!-- /Navbar Search-->
 
                         <!-- Navbar Wishlist-->
