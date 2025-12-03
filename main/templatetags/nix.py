@@ -365,6 +365,15 @@ def has_color_variants(product):
 
 
 @register.filter
+def is_in_wishlist(product, user):
+    """Check if product is in user's wishlist"""
+    from main.models import Wishlist
+    if user.is_authenticated:
+        return Wishlist.objects.filter(user=user, product=product).exists()
+    return False
+
+
+@register.filter
 def format_phone(phone):
     """Format phone number"""
     try:
