@@ -129,6 +129,23 @@
       animation: heartPulse 0.3s ease;
     }
 
+    /* Wishlist Page Remove Icon - Same styling as toggle */
+    .wishlist-remove {
+      z-index: 25;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .wishlist-remove i {
+      font-size: 1.75rem;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+
+    .wishlist-remove:hover i {
+      transform: scale(1.2);
+    }
+
     @keyframes heartPulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.3); }
