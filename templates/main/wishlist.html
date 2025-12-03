@@ -77,9 +77,10 @@
                             </picture>
 
                             {% if item.product.can_order %}
-                            <div class="position-absolute start-0 bottom-0 end-0 z-index-20 p-2">
+                            <div class="position-absolute start-0 bottom-0 end-0 p-2" style="z-index: 30;">
                                 <a href="{% url 'product:product_detail' item.product.slug %}"
-                                   class="btn btn-quick-add w-100">
+                                   class="btn btn-quick-add w-100"
+                                   style="position: relative; z-index: 30;">
                                     <i class="ri-shopping-cart-line me-2"></i> View & Add to Cart
                                 </a>
                             </div>
@@ -168,6 +169,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.action === 'removed') {
+                        // Update navbar wishlist count
+                        const countEl = document.getElementById('wishlist-count');
+                        if (countEl && data.wishlist_count !== undefined) {
+                            countEl.textContent = data.wishlist_count;
+                        }
+
                         // Fade out and remove the card
                         card.style.transition = 'opacity 0.3s ease';
                         card.style.opacity = '0';

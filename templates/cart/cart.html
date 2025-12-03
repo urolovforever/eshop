@@ -41,13 +41,15 @@
                                     <!-- Cart Item-->
                                     <div class="row mx-0 py-4 g-0 border-bottom">
                                         <div class="col-2 position-relative">
-                                            <picture class="d-block border">
-                                                {% if item.product.get_primary_image %}
-                                                <img class="img-fluid" src="{{ item.product.get_primary_image.image.url }}" alt="{{ item.product.name }}">
-                                                {% else %}
-                                                <img class="img-fluid" src="{% static 'images/products/placeholder.jpg' %}" alt="{{ item.product.name }}">
-                                                {% endif %}
-                                            </picture>
+                                            <a href="{% url 'product:product_detail' item.product.slug %}" class="d-block">
+                                                <picture class="d-block border">
+                                                    {% if item.product.get_primary_image %}
+                                                    <img class="img-fluid" src="{{ item.product.get_primary_image.image.url }}" alt="{{ item.product.name }}">
+                                                    {% else %}
+                                                    <img class="img-fluid" src="{% static 'images/products/placeholder.jpg' %}" alt="{{ item.product.name }}">
+                                                    {% endif %}
+                                                </picture>
+                                            </a>
                                         </div>
                                         <div class="col-9 offset-1">
                                             <div>
